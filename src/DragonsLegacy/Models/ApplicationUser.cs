@@ -12,10 +12,10 @@ namespace DragonsLegacy.Models
 
         public DateTime? BirthDate { get; set; }
 
-        // Every user starts with 0
+        // Every user starts with 0 experience points
         public int ExperiencePoints { get; set; } = 0;
 
-        // Every user starts with 0
+        // Every user starts with 0 coins
         public int Coins { get; set; } = 0;
 
         // The user's comments 

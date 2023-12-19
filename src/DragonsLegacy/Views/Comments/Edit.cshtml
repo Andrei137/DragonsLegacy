@@ -1,0 +1,13 @@
+﻿@model DragonsLegacy.Models.Comment
+
+@using (Html.BeginForm(actionName: "Edit", controllerName: "Comments", routeValues: new { id = Model.Id }))
+{
+    @Html.Label("Content", "Comment")
+    <br />
+
+    @Html.Editor("Content", null, new { @class = "form-control" })
+    @Html.ValidationMessage("Content", null, new { @class = "text-danger" })
+    <br />
+
+    <button class="btn  btn-primary" type="submit">Edit</button>
+}

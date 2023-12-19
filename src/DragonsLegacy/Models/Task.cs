@@ -4,6 +4,7 @@ namespace DragonsLegacy.Models
 {
     public class Task
     {
+        // PK
         [Key]
         public int Id { get; set; }
 
@@ -45,6 +46,7 @@ namespace DragonsLegacy.Models
         // The task has several comments
         public virtual ICollection<Comment>? Comments { get; set; }
 
+        // The task has several categories
         public virtual ICollection<TaskCategory>? TaskCategories { get; set; }
     }
 }

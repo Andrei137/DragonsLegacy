@@ -14,9 +14,15 @@ namespace DragonsLegacy.Models
 
         public string? Description { get; set; }
 
+        // The item's photo
+        // Might change to a list of photos
+        public string? Multimedia { get; set; }
+
+        // The price of the item
         [Required(ErrorMessage = "Price is required")]
         public int Price { get; set; }
 
+        // The stock
         [Required(ErrorMessage = "Number of items is required")]
         public int NumberOfItems { get; set; }
 

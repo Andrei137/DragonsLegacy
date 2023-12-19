@@ -23,7 +23,7 @@ namespace DragonsLegacy.Models
         // The comment belongs to an user
         public virtual ApplicationUser? User { get; set; }
 
-        // The comment belongs to a taskW
+        // The comment belongs to a task
         public virtual Task? Task { get; set; }
     }
 }

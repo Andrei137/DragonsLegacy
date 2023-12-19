@@ -5,6 +5,7 @@ namespace DragonsLegacy.Models
 {
     public class Team
     {
+        // PK
         [Key]
         public int Id { get; set; }
 

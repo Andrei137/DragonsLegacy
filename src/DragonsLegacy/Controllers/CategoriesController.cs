@@ -11,15 +11,9 @@ namespace ArticlesApp.Controllers
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext db;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-
-        public CategoriesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
-                                    RoleManager<IdentityRole> roleManager)
+        public CategoriesController(ApplicationDbContext context
         {
             db = context;
-            _userManager = userManager;
-            _roleManager = roleManager;
         }
 
         public ActionResult Index()
@@ -29,6 +23,8 @@ namespace ArticlesApp.Controllers
                 ViewBag.Message = TempData["message"];
                 ViewBag.Alert = TempData["messageType"];
             }
+
+            // Select all categories in alphabetical order
             var categories = from category in db.Categories
                              orderby category.Name
                              select category;
@@ -42,6 +38,7 @@ namespace ArticlesApp.Controllers
             return View(category);
         }
 
+        // GET
         public ActionResult New()
         {
             Category category = new Category();
@@ -56,7 +53,7 @@ namespace ArticlesApp.Controllers
                 ViewBag.Message = TempData["message"];
                 ViewBag.Alert = TempData["messageType"];
             }
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) // Add the category to the database
             {
                 db.Categories.Add(cat);
                 db.SaveChanges();
@@ -64,7 +61,7 @@ namespace ArticlesApp.Controllers
                 TempData["messageType"] = "alert-success";
                 return RedirectToAction("Index");
             }
-            else
+            else // Invalid model state
             {
                 TempData["message"] = "The category couldn't be added";
                 TempData["messageType"] = "alert-danger";
@@ -82,7 +79,7 @@ namespace ArticlesApp.Controllers
         public ActionResult Edit(int id, Category requestCategory)
         {
             Category category = db.Categories.Find(id);
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) // Modify the category
             {
                 category.Name = requestCategory.Name;
                 db.SaveChanges();
@@ -90,7 +87,7 @@ namespace ArticlesApp.Controllers
                 TempData["messageType"] = "alert-success";
                 return RedirectToAction("Index");
             }
-            else
+            else // Invalid model state
             {
                 ViewBag.Message = "Couldn't modify the category";
                 return View(requestCategory);

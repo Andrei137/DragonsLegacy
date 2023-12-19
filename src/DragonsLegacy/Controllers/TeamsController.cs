@@ -28,14 +28,14 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Message = TempData["message"];
                 ViewBag.Alert = TempData["messageType"];
             }
-            if (teamFilter == "AllTeams")
+            if (teamFilter == "AllTeams") // Select all the teams
             {
                 var teams = from team in db.Teams
                             select team;
                 ViewBag.Teams = teams;
                 ViewBag.Count = teams.Count();
             }
-            else if (teamFilter == "OldTeams")
+            else if (teamFilter == "OldTeams") // Select the teams that the user was in
             {
                 var teams = from team in db.Teams
                             where !(from teamHistory in db.TeamsHistory
@@ -46,7 +46,7 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Teams = teams;
                 ViewBag.Count = teams.Count();
             }
-            else if (teamFilter == "MyTeams")
+            else if (teamFilter == "MyTeams") // Select the teams that the user is in
             {
                 var teams = from team in db.Teams
                             join userTeam in db.UserTeams
@@ -56,7 +56,7 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Teams = teams;
                 ViewBag.Count = teams.Count();
             }
-            else if (teamFilter == "ManagedTeams")
+            else if (teamFilter == "ManagedTeams") // Select the teams for which the user is the manager
             {
                 var teams = from team in db.Teams
                             where team.ManagerId == _userManager.GetUserId(User)
@@ -112,6 +112,11 @@ namespace DragonsLegacy.Controllers
                                         .Contains(user.Id)
                                 select user;
 
+            // The team's manager
+            ViewBag.Manager = db.Users
+                                .Where(u => u.Id == team.ManagerId)
+                                .First();
+
             // The team's other members
             ViewBag.Members = from userTeam in db.UserTeams
                               join user in db.Users
@@ -128,6 +133,7 @@ namespace DragonsLegacy.Controllers
         {
             if (ModelState.IsValid)
             {
+                // If the user isn't in this team, add him
                 if (db.UserTeams
                       .Where(ut => ut.UserId == userTeam.UserId && ut.TeamId == userTeam.TeamId)
                       .Count() == 0)
@@ -163,6 +169,7 @@ namespace DragonsLegacy.Controllers
         {
             if (ModelState.IsValid)
             {
+                // If the user is in this team, remove him
                 if (db.UserTeams
                       .Where(ut => ut.UserId == userTeam.UserId && ut.TeamId == userTeam.TeamId)
                       .Count() == 1)
@@ -210,7 +217,7 @@ namespace DragonsLegacy.Controllers
             // The current user becomes the manager
             team.ManagerId = user.Id;
 
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) // Add the team to the database
             {
                 db.Teams.Add(team);
                 db.SaveChanges();
@@ -234,7 +241,7 @@ namespace DragonsLegacy.Controllers
                 TempData["messageType"] = "alert-success";
                 return RedirectToAction("Index");
             }
-            else
+            else // Invalid model state
             {
                 ViewBag.Message = "The team couldn't be added";
                 ViewBag.Alert = "alert-danger";
@@ -266,7 +273,7 @@ namespace DragonsLegacy.Controllers
         public IActionResult Edit(int id, Team requestTeam)
         {
             Team team = db.Teams.Find(id);
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) // Modify the team
             {
                 if (team.ManagerId == _userManager.GetUserId(User) ||
                     User.IsInRole("Admin"))
@@ -285,7 +292,7 @@ namespace DragonsLegacy.Controllers
                     return RedirectToAction("Index");
                 }
             }
-            else
+            else // Invalid model state
             {
                 ViewBag.Message = "Couldn't modify the team";
                 ViewBag.Alert = "alert-danger";

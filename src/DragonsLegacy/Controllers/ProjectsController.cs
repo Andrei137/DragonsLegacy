@@ -28,13 +28,13 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Message = TempData["message"];
                 ViewBag.Alert = TempData["messageType"];
             }
-            if (projectFilter == "AllProjects")
+            if (projectFilter == "AllProjects") // Select all the projects
             {
                 var projects = from project in db.Projects
                             select project;
                 ViewBag.Projects = projects;
             }
-            else if (projectFilter == "MyProjects")
+            else if (projectFilter == "MyProjects") // Select the projects the user is working on
             {
                 var projects = from project in db.Projects
                             join userProject in db.UserProjects
@@ -43,7 +43,7 @@ namespace DragonsLegacy.Controllers
                             select project;
                 ViewBag.Projects = projects;
             }
-            else if (projectFilter == "OrganizedProjects")
+            else if (projectFilter == "OrganizedProjects") // Select the projects for which the user is the organizer
             {
                 var projects = from project in db.Projects
                             where project.OrganizerId == _userManager.GetUserId(User)
@@ -57,7 +57,7 @@ namespace DragonsLegacy.Controllers
                 return RedirectToAction("Index");
             }
 
-            // If the user is an admin, show all teams
+            // If the user is an admin, show all projects
             if (User.IsInRole("Admin"))
             {
                 var projects = from project in db.Projects
@@ -78,8 +78,8 @@ namespace DragonsLegacy.Controllers
             }
 
             Project project = db.Projects
-                          .Where(p => p.Id == id)
-                          .First();
+                                .Where(p => p.Id == id)
+                                .First();
 
             // Select the users who are in the project
             ViewBag.InProject = from teamProject in db.TeamProjects
@@ -112,6 +112,7 @@ namespace DragonsLegacy.Controllers
         {
             if (ModelState.IsValid)
             {
+                // If the team isn't in the project, add it
                 if (db.TeamProjects
                       .Where(tp => tp.TeamId == teamProject.TeamId && tp.ProjectId == teamProject.ProjectId)
                       .Count() == 0)
@@ -172,6 +173,7 @@ namespace DragonsLegacy.Controllers
         {
             if (ModelState.IsValid)
             {
+                // If the team is in the project, remove it
                 if (db.TeamProjects
                       .Where(tp => tp.TeamId == teamProject.TeamId && tp.ProjectId == teamProject.ProjectId)
                       .Count() == 1)
@@ -185,7 +187,7 @@ namespace DragonsLegacy.Controllers
                                 select userTeam.UserId;
                     foreach (string userId in users)
                     {
-                        // If the user is in another team of the project, don't remove him
+                        // If the user is in another team working on the project, don't remove him
                         if (db.TeamProjects
                               .Where(tp => tp.ProjectId == teamProject.ProjectId && tp.TeamId != teamProject.TeamId)
                               .Count() == 0)
@@ -230,7 +232,7 @@ namespace DragonsLegacy.Controllers
             // The current user becomes the organizer
             project.OrganizerId = user.Id;
 
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) // Add the project to the database
             {
                 db.Projects.Add(project);
                 db.SaveChanges();
@@ -246,7 +248,7 @@ namespace DragonsLegacy.Controllers
                 TempData["messageType"] = "alert-success";
                 return RedirectToAction("Index");
             }
-            else
+            else // Invalid model state
             {
                 ViewBag.Message = "The project couldn't be added";
                 ViewBag.Alert = "alert-danger";
@@ -278,7 +280,7 @@ namespace DragonsLegacy.Controllers
         public IActionResult Edit(int id, Project requestProject)
         {
             Project project = db.Projects.Find(id);
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) // Modify the project
             {
                 if (project.OrganizerId == _userManager.GetUserId(User) ||
                     User.IsInRole("Admin"))
@@ -297,7 +299,7 @@ namespace DragonsLegacy.Controllers
                     return RedirectToAction("Index");
                 }
             }
-            else
+            else // Invalid model state
             {
                 ViewBag.Message = "Couldn't modify the team";
                 ViewBag.Alert = "alert-danger";
@@ -331,6 +333,7 @@ namespace DragonsLegacy.Controllers
         {
             ViewBag.ShowButtons = false;
 
+            // If the current user is the organizer, show the buttons
             if (project.OrganizerId == _userManager.GetUserId(User))
             {
                 ViewBag.ShowButtons = true;
