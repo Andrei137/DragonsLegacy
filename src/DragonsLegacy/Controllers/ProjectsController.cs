@@ -3,6 +3,8 @@ using DragonsLegacy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Task = DragonsLegacy.Models.Task;
 
 namespace DragonsLegacy.Controllers
 {
@@ -103,8 +105,40 @@ namespace DragonsLegacy.Controllers
                             where teamProject.ProjectId == id
                             select team;
 
+            // Every user in the project
+            ViewBag.AllUsers = GetAllUsers(project);
+
             SetAccessRights(project);
             return View(project);
+        }
+
+        [HttpPost]
+        public IActionResult Show([FromForm] Task task)
+        {
+            if (TempData.ContainsKey("message"))
+            {
+                ViewBag.Message = TempData["message"];
+                ViewBag.Alert = TempData["messageType"];
+            }
+
+            task.StartDate = DateTime.Now;
+            task.UserId = _userManager.GetUserId(User);
+
+            if (ModelState.IsValid)
+            {
+                db.Tasks.Add(task);
+                db.SaveChanges();
+                return Redirect("/Projects/Show/" + task.ProjectId);
+            }
+            else
+            {
+                Project project = db.Projects
+                                    .Where(p => p.Id == task.ProjectId)
+                                    .First();
+
+                SetAccessRights(project);
+                return View(project);
+            }
         }
 
         [HttpPost]
@@ -340,6 +374,29 @@ namespace DragonsLegacy.Controllers
             }
 
             ViewBag.IsAdmin = User.IsInRole("Admin");
+        }
+
+        [NonAction]
+        private IEnumerable<SelectListItem> GetAllUsers(Project project)
+        {
+            // Select all user objects from all teams working on the project
+            var users = from userTeam in db.UserTeams
+                        join teamProject in db.TeamProjects
+                        on userTeam.TeamId equals teamProject.TeamId
+                        where teamProject.ProjectId == project.Id
+                        select userTeam.User;
+
+            var selectList = new List<SelectListItem>();
+            foreach (var user in users)
+            {
+                selectList.Add(new SelectListItem
+                {
+                    Value = user.Id.ToString(),
+                    Text = user.UserName.ToString()
+                });
+            }
+
+            return selectList;
         }
     }
 }

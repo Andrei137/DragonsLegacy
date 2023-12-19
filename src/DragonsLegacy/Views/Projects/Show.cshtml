@@ -90,4 +90,87 @@
     }
 </div>
 
+@if (ViewBag.ShowButtons || ViewBag.IsAdmin)
+{
+    <div class="container">
+
+        <div class="row">
+
+            <div class="card mt-3">
+
+                <div class="card-body">
+
+                    <button class="btn btn-primary" id="toggleFormButton">Add New Task</button>
+                    <form id="addTaskForm" style="display: none;">
+                        <div class="card-body">
+                            <input type="hidden" name="ProjectId" value="@Model.Id" />
+
+                            @Html.Label("Name", "Name")
+                            <br />
+                            <textarea class="form-control" name="Name"></textarea>
+                            @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
+                            <br />
+
+                            @Html.Label("Description", "Description")
+                            <br />
+                            <textarea class="form-control" name="Description"></textarea
+                            @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
+                            <br /><br />
+
+                            @Html.Label("Priority", "Priority")
+                            <br />
+                            <select name="Priority" class="form-control">
+                                <option selected disabled>Select a priority</option>
+                                <option value="1">Low</option>
+                                <option value="2">Medium</option>
+                                <option value="3">High</option>
+                            </select>
+                            <br /><br />
+
+                            @Html.Label("Status", "Status")
+                            <br />
+                            <select name="Status" class="form-control">
+                                <option selected disabled>Select a status</option>
+                                <option value="Not Started">Not Started</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                            <br /><br />
+
+                            @Html.Label("Due Date", "Deadline")
+                            <br />
+                            <input type="date" name="Deadline" class="form-control" />
+                            <br /><br />
+
+                            <input type="hidden" name="StartDate" value="@DateTime.Now" />
+
+                            <i class="bi bi-card-list"></i>
+                            <label>Assign User</label>
+                            @Html.DropDownList("User", new SelectList(ViewBag.AllUsers, "Value", "Text"), null, new { @class = "form-control", disabled = "disabled" })
+
+                            <button class="btn btn-primary" type="submit">Add task</button>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-2"></div>
+
+    </div>
+
+    <script>
+        document.getElementById("toggleFormButton").addEventListener("click", function() 
+        {
+            // Toggle the visibility of the form
+            var form = document.getElementById("addTaskForm");
+            form.style.display = (form.style.display === "none") ? "block" : "none";
+        });
+    </script>
+
+}
+
 

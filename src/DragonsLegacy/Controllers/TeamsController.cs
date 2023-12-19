@@ -37,12 +37,24 @@ namespace DragonsLegacy.Controllers
             }
             else if (teamFilter == "OldTeams") // Select the teams that the user was in
             {
+                // Select the old teams from the user's history
                 var teams = from team in db.Teams
-                            where !(from teamHistory in db.TeamsHistory
-                                    where teamHistory.EndDate == null
-                                    select teamHistory.TeamId)
-                                    .Contains(team.Id)
+                            join teamHistory in db.TeamsHistory
+                            on team.Id equals teamHistory.TeamId
+                            where teamHistory.UserId == _userManager.GetUserId(User)
                             select team;
+                
+                // Exclude the teams that the user is still in
+                teams = from team in teams
+                        where !(from userTeam in db.UserTeams
+                                where userTeam.UserId == _userManager.GetUserId(User)
+                                select userTeam.TeamId)
+                                .Contains(team.Id)
+                        select team;
+
+                // Exclude duplicate teams
+                teams = teams.Distinct();
+
                 ViewBag.Teams = teams;
                 ViewBag.Count = teams.Count();
             }

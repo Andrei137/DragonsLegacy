@@ -13,13 +13,15 @@
 
 @using (Html.BeginForm("Index", "Projects", FormMethod.Get))
 {
-    <label for="projectFilter">Filter:</label>
-    @Html.DropDownList("projectFilter", new SelectList(new[]
-            {
-        new SelectListItem { Text = "Organized Projects", Value = "OrganizedProjects" },
-        new SelectListItem { Text = "My Projects", Value = "MyProjects" },
-        new SelectListItem { Text = "All Projects", Value = "AllProjects" }
-    }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
+    <div class="filter-container">
+        <label for="projectFilter">Filter:</label>
+        @Html.DropDownList("projectFilter", new SelectList(new[]
+                {
+            new SelectListItem { Text = "Organized Projects", Value = "OrganizedProjects" },
+            new SelectListItem { Text = "My Projects", Value = "MyProjects" },
+            new SelectListItem { Text = "All Projects", Value = "AllProjects" }
+        }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
+    </div>
 }
 
 <br /><br />
@@ -39,7 +41,3 @@
 }
 
 <br /><br />
-
-<div class="text-center">
-    <a href="Projects/New" class="btn btn-success">Add Project</a>
-</div>

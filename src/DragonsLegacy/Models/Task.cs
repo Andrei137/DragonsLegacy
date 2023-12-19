@@ -40,8 +40,13 @@ namespace DragonsLegacy.Models
         // FK
         public string UserId { get; set; }
 
+        // FK
+        public int ProjectId {  get; set; }
+
         // The task belongs to an user
         public virtual ApplicationUser? User { get; set; }
+
+        public virtual Project? Project { get; set; }
 
         // The task has several comments
         public virtual ICollection<Comment>? Comments { get; set; }

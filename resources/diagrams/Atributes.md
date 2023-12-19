@@ -64,7 +64,9 @@
     ExperiencePoints: int, Required
     Coins: int, Default(0)
     UserId: string
+    ProjectId: int
     User: ApplicationUser?
+    Project: Project?
     Comments: ICollection<Comment>?
     TaskCategories: ICollection<TaskCategory>?
 

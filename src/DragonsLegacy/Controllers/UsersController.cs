@@ -132,7 +132,7 @@ namespace ArticlesApp.Controllers
                           
 
         [NonAction]
-        public IEnumerable<SelectListItem> GetAllRoles()
+        private IEnumerable<SelectListItem> GetAllRoles()
         {
             var selectList = new List<SelectListItem>();
 
