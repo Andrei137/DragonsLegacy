@@ -11,7 +11,7 @@ namespace ArticlesApp.Controllers
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext db;
-        public CategoriesController(ApplicationDbContext context
+        public CategoriesController(ApplicationDbContext context)
         {
             db = context;
         }
