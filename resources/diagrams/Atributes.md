@@ -118,7 +118,7 @@
     User: ApplicationUser?
     Project: Project?
 
-### UsersTeams
+### UserTeam
     UserId: string, Key
     TeamId: int, Key
     User: ApplicationUser?
