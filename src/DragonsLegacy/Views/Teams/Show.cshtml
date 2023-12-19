@@ -1,0 +1,80 @@
+﻿@model DragonsLegacy.Models.Team
+
+<h2 class="text-center">Show Team</h2>
+
+@if (ViewBag.Message != null)
+{
+    <br />
+    <br />
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br /><br />
+
+<div class="card">
+
+    @Html.Partial("TeamInfo", Model)
+
+    <br />
+
+    @if (ViewBag.ShowButtons || ViewBag.IsAdmin)
+    {
+        <div class="d-flex flex-row justify-content-around">
+
+            <a class="btn btn-primary" href="/Teams/Edit/@Model.Id">Edit</a>
+
+            <form method="post" action="/Teams/Delete/@Model.Id">
+
+                <button type="submit" class="btn btn-danger">Delete</button>
+
+            </form>
+
+        </div>
+
+        <br />
+
+        <div class="d-flex flex-row justify-content-around">
+            <form method="post" asp-controller="Teams" asp-action="AddUser">
+                <input type="hidden" name="TeamId" value="@Model.Id" />
+                <div class="d-flex flex-row justify-content-center p-3">
+                    <div>
+                        <select name="UserId" class="form-control">
+                            <option selected disabled>Add this user to the team</option>
+                            @foreach (var user in ViewBag.NotInTeam)
+                            {
+                                <option value="@user.Id">@user.UserName</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <input type="submit" class="btn btn-success alert-success" value="+" />
+                    </div>
+                </div>
+            </form>
+
+            <form method="post" asp-controller="Teams" asp-action="RemoveUser">
+                <input type="hidden" name="TeamId" value="@Model.Id" />
+                <div class="d-flex flex-row justify-content-center p-3">
+                    <div>
+                        <select name="UserId" class="form-control">
+                            <option selected disabled>Remove this user to the team</option>
+                            @foreach (var user in ViewBag.InTeam)
+                            {
+                                @if (user.Id != Model.ManagerId)
+                                {
+                                    <option value="@user.Id">@user.UserName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <input type="submit" class="btn btn-danger alert-danger" value="-" />
+                    </div>
+                </div>
+            </form>
+        </div>
+    }
+
+</div>

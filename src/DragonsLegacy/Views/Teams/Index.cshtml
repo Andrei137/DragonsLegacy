@@ -1,0 +1,45 @@
+﻿<h2 class="text-center">Index Teams</h2>
+
+@if (ViewBag.Message != null)
+{
+    <br />
+    <br />
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br /><br />
+
+@using (Html.BeginForm("Index", "Teams", FormMethod.Get))
+{
+    <label for="teamFilter">Filter:</label>
+    @Html.DropDownList("teamFilter", new SelectList(new[]
+            {
+        new SelectListItem { Text = "Managed Teams", Value = "ManagedTeams" },
+        new SelectListItem { Text = "My Teams", Value = "MyTeams" },
+        new SelectListItem { Text = "All Teams", Value = "AllTeams" }
+    }, "Value", "Text", ViewBag.TeamFilter), new { onchange = "submit()" })
+}
+
+<br /><br />
+
+@foreach (DragonsLegacy.Models.Team team in ViewBag.Teams)
+{
+    <div class="card">
+
+        @Html.Partial("TeamInfo", team)
+
+    </div>
+
+    <div class="text-center">
+        <a href="/Teams/Show/@team.Id" class="btn btn-primary">Show Team</a>
+    </div>
+    <br />
+}
+
+<br /><br />
+
+<div class="text-center">
+    <a href="Teams/New" class="btn btn-success">Add Team</a>
+</div>

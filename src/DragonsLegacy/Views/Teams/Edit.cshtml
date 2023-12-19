@@ -1,0 +1,40 @@
+﻿@model DragonsLegacy.Models.Team
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br /><br />
+
+<h2 class="text-center mt-5">Add team</h2>
+<br />
+@using (Html.BeginForm(actionName: "Edit", controllerName: "Teams"))
+{
+    <div class="row">
+        <div class="col-6 offset-3">
+
+            @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+            @Html.Label("Name", "Team's Name")
+            <br />
+
+            @Html.TextBox("Name", Model.Name, new { @class = "form-control" })
+            @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
+            <br /><br />
+
+            @Html.Label("Description", "Team's Description")
+            <br />
+
+            @Html.TextArea("Description", Model.Description, new { @class = "form-control" })
+            @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
+            <br /><br />
+
+            <button class="btn btn-success" type="submit">Add Team</button>
+
+        </div>
+
+    </div>
+}
