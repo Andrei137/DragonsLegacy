@@ -9,11 +9,12 @@
 
 <br /><br />
 
-<h2 class="text-center mt-5">Add team</h2>
+<h2 class="text-center mt-5">Edit Team</h2>
 <br />
 @using (Html.BeginForm(actionName: "Edit", controllerName: "Teams"))
 {
     <div class="row">
+
         <div class="col-6 offset-3">
 
             @Html.ValidationSummary(false, "", new { @class = "text-danger" })
@@ -32,7 +33,7 @@
             @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
             <br /><br />
 
-            <button class="btn btn-success" type="submit">Add Team</button>
+            <button class="btn btn-success" type="submit">Edit</button>
 
         </div>
 

@@ -33,6 +33,18 @@ namespace DragonsLegacy.Controllers
                 var teams = from team in db.Teams
                             select team;
                 ViewBag.Teams = teams;
+                ViewBag.Count = teams.Count();
+            }
+            else if (teamFilter == "OldTeams")
+            {
+                var teams = from team in db.Teams
+                            where !(from teamHistory in db.TeamsHistory
+                                    where teamHistory.EndDate == null
+                                    select teamHistory.TeamId)
+                                    .Contains(team.Id)
+                            select team;
+                ViewBag.Teams = teams;
+                ViewBag.Count = teams.Count();
             }
             else if (teamFilter == "MyTeams")
             {
@@ -42,6 +54,7 @@ namespace DragonsLegacy.Controllers
                             where userTeam.UserId == _userManager.GetUserId(User)
                             select team;
                 ViewBag.Teams = teams;
+                ViewBag.Count = teams.Count();
             }
             else if (teamFilter == "ManagedTeams")
             {
@@ -49,6 +62,7 @@ namespace DragonsLegacy.Controllers
                             where team.ManagerId == _userManager.GetUserId(User)
                             select team;
                 ViewBag.Teams = teams;
+                ViewBag.Count = teams.Count();
             }
             else // Invalid team filter
             {
@@ -58,12 +72,14 @@ namespace DragonsLegacy.Controllers
             }
 
             // If the user is an admin, show all teams
-            if (User.IsInRole("Admin"))
+            if (User.IsInRole("Admin") && teamFilter != "OldTeams")
             {
                 var teams = from team in db.Teams
                             select team;
                 ViewBag.Teams = teams;
+                ViewBag.Count = teams.Count();
             }
+
             ViewBag.TeamFilter = teamFilter;
 
             return View();
@@ -89,13 +105,19 @@ namespace DragonsLegacy.Controllers
                              select user;
 
             // Select the users who aren't in the team
-            // Except the manager
             ViewBag.NotInTeam = from user in db.Users
                                 where !(from userTeam in db.UserTeams
                                         where userTeam.TeamId == id
                                         select userTeam.UserId)
                                         .Contains(user.Id)
-                                 select user;
+                                select user;
+
+            // The team's other members
+            ViewBag.Members = from userTeam in db.UserTeams
+                              join user in db.Users
+                              on userTeam.UserId equals user.Id
+                              where userTeam.TeamId == id && userTeam.UserId != team.ManagerId
+                              select user;
 
             SetAccessRights(team);
             return View(team);
@@ -110,6 +132,13 @@ namespace DragonsLegacy.Controllers
                       .Where(ut => ut.UserId == userTeam.UserId && ut.TeamId == userTeam.TeamId)
                       .Count() == 0)
                 {
+                    // Add the user to the team's history
+                    TeamHistory teamHistory = new TeamHistory();
+                    teamHistory.TeamId = userTeam.TeamId;
+                    teamHistory.UserId = userTeam.UserId;
+                    teamHistory.StartDate = System.DateTime.Now;
+                    db.TeamsHistory.Add(teamHistory);
+
                     db.UserTeams.Add(userTeam);
                     db.SaveChanges();
                     TempData["message"] = "The user was successfully added to the team";
@@ -138,8 +167,17 @@ namespace DragonsLegacy.Controllers
                       .Where(ut => ut.UserId == userTeam.UserId && ut.TeamId == userTeam.TeamId)
                       .Count() == 1)
                 {
+                    // We find the most recent entry in the history
+                    TeamHistory teamHistory = db.TeamsHistory
+                                               .Where(th => th.TeamId == userTeam.TeamId &&
+                                                            th.UserId == userTeam.UserId)
+                                               .OrderByDescending(th => th.StartDate)
+                                               .First();
+                    teamHistory.EndDate = System.DateTime.Now;
+
                     db.UserTeams.Remove(userTeam);
                     db.SaveChanges();
+
                     TempData["message"] = "The user was successfully removed from the team";
                     TempData["messageType"] = "alert-success";
                 }
@@ -182,6 +220,14 @@ namespace DragonsLegacy.Controllers
                 userTeam.UserId = user.Id;
                 userTeam.TeamId = team.Id;
                 db.UserTeams.Add(userTeam);
+
+                // Add the manager to the team's history
+                TeamHistory teamHistory = new TeamHistory();
+                teamHistory.TeamId = userTeam.TeamId;
+                teamHistory.UserId = userTeam.UserId;
+                teamHistory.StartDate = System.DateTime.Now;
+                db.TeamsHistory.Add(teamHistory);
+
                 db.SaveChanges();
 
                 TempData["message"] = "The team was successfully added";
@@ -250,11 +296,19 @@ namespace DragonsLegacy.Controllers
         public IActionResult Delete(int id)
         {
             Team team = db.Teams
-                             .Where(t => t.Id == id)
-                             .First();
+                          .Where(t => t.Id == id)
+                          .First();
             if (team.ManagerId == _userManager.GetUserId(User) ||
                 User.IsInRole("Admin"))
             {
+                // Remove the team's history
+                var teamHistory = db.TeamsHistory
+                                  .Where(th => th.TeamId == id);
+                foreach (var history in teamHistory)
+                {
+                    db.TeamsHistory.Remove(history);
+                }
+
                 db.Teams.Remove(team);
                 db.SaveChanges();
                 TempData["message"] = "The team was deleted";

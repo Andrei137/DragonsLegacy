@@ -1,4 +1,4 @@
-﻿@model DragonsLegacy.Models.Team
+﻿@model DragonsLegacy.Models.Project
 
 @if (ViewBag.Message != null)
 {
@@ -9,9 +9,9 @@
 
 <br /><br />
 
-<h2 class="text-center mt-5">Add Team</h2>
+<h2 class="text-center mt-5">Add Project</h2>
 <br />
-@using (Html.BeginForm(actionName: "New", controllerName: "Teams"))
+@using (Html.BeginForm(actionName: "New", controllerName: "Projects"))
 {
     <div class="row">
         <div class="col-6 offset-3">

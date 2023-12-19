@@ -1,6 +1,6 @@
-﻿@model DragonsLegacy.Models.Team
+﻿@model DragonsLegacy.Models.Project
 
-<h2 class="text-center">Show Team</h2>
+<h2 class="text-center">Show Project</h2>
 
 @if (ViewBag.Message != null)
 {
@@ -23,9 +23,9 @@
     {
         <div class="d-flex flex-row justify-content-around">
 
-            <a class="btn btn-primary" href="/Teams/Edit/@Model.Id">Edit</a>
+            <a class="btn btn-primary" href="/Projects/Edit/@Model.Id">Edit</a>
 
-            <form method="post" action="/Teams/Delete/@Model.Id">
+            <form method="post" action="/Projects/Delete/@Model.Id">
 
                 <button type="submit" class="btn btn-danger">Delete</button>
 
@@ -36,15 +36,15 @@
         <br />
 
         <div class="d-flex flex-row justify-content-around">
-            <form method="post" asp-controller="Teams" asp-action="AddUser">
-                <input type="hidden" name="TeamId" value="@Model.Id" />
+            <form method="post" asp-controller="Projects" asp-action="AddTeam">
+                <input type="hidden" name="ProjectId" value="@Model.Id" />
                 <div class="d-flex flex-row justify-content-center p-3">
                     <div>
-                        <select name="UserId" class="form-control">
-                            <option selected disabled>Add this user to the team</option>
-                            @foreach (var user in ViewBag.NotInTeam)
+                        <select name="TeamId" class="form-control">
+                            <option selected disabled>Add this team to the project</option>
+                            @foreach (var team in ViewBag.NotInProject)
                             {
-                                <option value="@user.Id">@user.UserName</option>
+                                <option value="@team.Id">@team.Name</option>
                             }
                         </select>
                     </div>
@@ -54,18 +54,15 @@
                 </div>
             </form>
 
-            <form method="post" asp-controller="Teams" asp-action="RemoveUser">
-                <input type="hidden" name="TeamId" value="@Model.Id" />
+            <form method="post" asp-controller="Projects" asp-action="RemoveTeam">
+                <input type="hidden" name="ProjectId" value="@Model.Id" />
                 <div class="d-flex flex-row justify-content-center p-3">
                     <div>
-                        <select name="UserId" class="form-control">
+                        <select name="TeamId" class="form-control">
                             <option selected disabled>Remove this user to the team</option>
-                            @foreach (var user in ViewBag.InTeam)
+                            @foreach (var team in ViewBag.InProject)
                             {
-                                @if (user.Id != Model.ManagerId)
-                                {
-                                    <option value="@user.Id">@user.UserName</option>
-                                }
+                                <option value="@team.Id">@team.Name</option>
                             }
                         </select>
                     </div>
@@ -77,27 +74,20 @@
         </div>
     }
 
-    <br />
 </div>
 
 <br /><b3 />
 
-<h3 class="text-center">Members</h3>
+<h3 class="text-center">Teams</h3>
 <div class="d-flex flex-row justify-content-center">
-    <div style="width: 18rem;">
-        <div class="card-body">
-            <h5 class="card-title">Manager</h5>
-            <p class="card-text">@Model.Manager.UserName</p>
-        </div>
-    </div>
-
-    @foreach (var user in ViewBag.Members)
+    @foreach (var team in ViewBag.Teams)
     {
         <div style="width: 18rem;">
             <div class="card m-2 p-2">
-                <h5 class="card-title text-center">User</h5>
-                <p class="card-text text-center">@user.UserName</p>
+                <p class="card-text text-center"><a href="@Url.Action("Show", "Teams", new { id = team.Id })">@team.Name</a></p>
             </div>
         </div>
     }
 </div>
+
+

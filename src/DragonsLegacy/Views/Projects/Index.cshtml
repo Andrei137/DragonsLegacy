@@ -1,0 +1,45 @@
+﻿<h2 class="text-center">Index Projects</h2>
+
+@if (ViewBag.Message != null)
+{
+    <br />
+    <br />
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br /><br />
+
+@using (Html.BeginForm("Index", "Projects", FormMethod.Get))
+{
+    <label for="projectFilter">Filter:</label>
+    @Html.DropDownList("projectFilter", new SelectList(new[]
+            {
+        new SelectListItem { Text = "Organized Projects", Value = "OrganizedProjects" },
+        new SelectListItem { Text = "My Projects", Value = "MyProjects" },
+        new SelectListItem { Text = "All Projects", Value = "AllProjects" }
+    }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
+}
+
+<br /><br />
+
+@foreach (DragonsLegacy.Models.Project project in ViewBag.Projects)
+{
+    <div class="card">
+
+        @Html.Partial("GeneralInfo", project)
+
+    </div>
+
+    <div class="text-center">
+        <a href="/Projects/Show/@project.Id" class="btn btn-primary">Show Project</a>
+    </div>
+    <br />
+}
+
+<br /><br />
+
+<div class="text-center">
+    <a href="Projects/New" class="btn btn-success">Add Project</a>
+</div>

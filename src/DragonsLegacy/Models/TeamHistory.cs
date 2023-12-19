@@ -16,8 +16,7 @@ namespace DragonsLegacy.Models
         [Required(ErrorMessage = "Team Id is required")]
         public int TeamId { get; set; }
 
-        [Required(ErrorMessage = "End date is required")]
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
 
         // This is the object from class User to which this TeamHistory is related
         public virtual ApplicationUser? User { get; set; }

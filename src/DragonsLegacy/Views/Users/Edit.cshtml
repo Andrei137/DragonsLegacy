@@ -1,0 +1,57 @@
+﻿@model DragonsLegacy.Models.ApplicationUser
+
+@using (Html.BeginForm(actionName: "Edit", controllerName: "Users",
+        method: FormMethod.Post, routeValues: new { id = @Model.Id }))
+{
+    <div class="row">
+
+        <div class="col-6 offset-3">
+    
+            <i class="bi bi-person"></i>
+            @Html.Label("UserName", "Username")
+            <br />
+
+            @Html.TextBox("UserName", Model.UserName, new { @class = "form-control" })
+            <br />
+
+            <i class="bi bi-envelope"></i>
+            @Html.Label("Email", "Email")
+            <br />
+
+            @Html.TextBox("Email", Model.Email, new { @class = "form-control" })
+            <br />
+
+            <i class="bi bi-phone"></i>
+            @Html.Label("PhoneNumber", "Phone number")
+            <br />
+
+            @Html.TextBox("PhoneNumber", Model.PhoneNumber, new { @class = "form-control" })
+            <br />
+
+            <i class="bi bi-person"></i>
+            @Html.Label("FirstName", "First Name")
+            <br />
+
+            @Html.TextBox("FirstName", Model.FirstName, new { @class = "form-control" })
+            <br />
+
+            <i class="bi bi-person"></i>
+            @Html.Label("LastName", "Last Name")
+            <br />
+
+            @Html.TextBox("LastName", Model.LastName, new { @class = "form-control" })
+            <br />
+
+            <i class="bi bi-card-list"></i>
+            <label>Select new role</label>
+            @Html.DropDownList("newRole", new SelectList(Model.AllRoles, "Value", "Text", ViewBag.UserRole), null, new { @class = "form-control" })
+
+            <br />
+
+            <button class="btn btn-sm btn-success" type="submit">Edit</button>
+
+        </div>
+
+    </div>
+}
+

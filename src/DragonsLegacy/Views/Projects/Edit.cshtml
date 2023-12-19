@@ -1,4 +1,4 @@
-﻿@model DragonsLegacy.Models.Team
+﻿@model DragonsLegacy.Models.Project
 
 @if (ViewBag.Message != null)
 {
@@ -9,30 +9,30 @@
 
 <br /><br />
 
-<h2 class="text-center mt-5">Add Team</h2>
+<h2 class="text-center mt-5">Edit Project</h2>
 <br />
-@using (Html.BeginForm(actionName: "New", controllerName: "Teams"))
+@using (Html.BeginForm(actionName: "Edit", controllerName: "Projects"))
 {
     <div class="row">
         <div class="col-6 offset-3">
 
             @Html.ValidationSummary(false, "", new { @class = "text-danger" })
 
-            @Html.Label("Name", "Team's Name")
+            @Html.Label("Name", "Project's Name")
             <br />
-
-            @Html.TextBox("Name", null, new { @class = "form-control" })
+                
+            @Html.TextBox("Name", Model.Name, new { @class = "form-control" })
             @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
             <br /><br />
 
-            @Html.Label("Description", "Team's Description")
+            @Html.Label("Description", "Project's Description")
             <br />
 
-            @Html.TextArea("Description", null, new { @class = "form-control" })
+            @Html.TextArea("Description", Model.Description, new { @class = "form-control" })
             @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
             <br /><br />
 
-            <button class="btn btn-success" type="submit">Add</button>
+            <button class="btn btn-success" type="submit">Edit</button>
 
         </div>
 

@@ -18,24 +18,34 @@
             {
         new SelectListItem { Text = "Managed Teams", Value = "ManagedTeams" },
         new SelectListItem { Text = "My Teams", Value = "MyTeams" },
+        new SelectListItem { Text = "Old Teams", Value = "OldTeams" },
         new SelectListItem { Text = "All Teams", Value = "AllTeams" }
     }, "Value", "Text", ViewBag.TeamFilter), new { onchange = "submit()" })
 }
 
 <br /><br />
 
-@foreach (DragonsLegacy.Models.Team team in ViewBag.Teams)
+@if (ViewBag.Count > 0)
 {
-    <div class="card">
+    @foreach (DragonsLegacy.Models.Team team in ViewBag.Teams)
+    {
+        <div class="card">
 
-        @Html.Partial("TeamInfo", team)
+            @Html.Partial("GeneralInfo", team)
 
+        </div>
+
+        <div class="text-center">
+            <a href="/Teams/Show/@team.Id" class="btn btn-primary">Show Team</a>
+        </div>
+        <br />
+    }
+}
+else
+{
+    <div class="alert alert-info p-3 rounded-3 text-center">
+        No teams found.
     </div>
-
-    <div class="text-center">
-        <a href="/Teams/Show/@team.Id" class="btn btn-primary">Show Team</a>
-    </div>
-    <br />
 }
 
 <br /><br />

@@ -4,7 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>aspnet-DragonsLegacy-41683d18-5bd6-4ea2-baee-04023fbc9cd4</UserSecretsId>
+    <UserSecretsId>aspnet-DragonsLegacy-090c39dd-ee8d-4243-b092-807155d654bd</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

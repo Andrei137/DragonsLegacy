@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DragonsLegacy.Models
@@ -37,5 +38,8 @@ namespace DragonsLegacy.Models
 
         // The user's projects
         public virtual ICollection<UserProject>? UserProjects { get; set; }
+
+        [NotMapped]
+        public IEnumerable<SelectListItem>? AllRoles { get; set; }
     }
 }

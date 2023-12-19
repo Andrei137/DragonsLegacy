@@ -88,7 +88,7 @@
     UserId: string, Key
     StartDate: DateTime, Key
     TeamId: int
-    EndDate: DateTime
+    EndDate: DateTime?
     User: ApplicationUser?
     Team: Team?
 
