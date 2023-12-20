@@ -126,15 +126,46 @@ namespace DragonsLegacy.Controllers
 
             if (ModelState.IsValid)
             {
+                TempData["message"] = "Success";
+                TempData["messageType"] = "alert-success";
                 db.Tasks.Add(task);
                 db.SaveChanges();
                 return Redirect("/Projects/Show/" + task.ProjectId);
             }
             else
             {
+                TempData["message"] = "Error";
+                TempData["messageType"] = "alert-danger";
+
                 Project project = db.Projects
                                     .Where(p => p.Id == task.ProjectId)
                                     .First();
+
+
+                // Select the users who are in the project
+                ViewBag.InProject = from teamProject in db.TeamProjects
+                                    join team in db.Teams
+                                    on teamProject.TeamId equals team.Id
+                                    where teamProject.ProjectId == project.Id
+                                    select team;
+
+                // Select the users who aren't in the project
+                ViewBag.NotInProject = from team in db.Teams
+                                       where !(from teamProject in db.TeamProjects
+                                               where teamProject.ProjectId == project.Id
+                                               select teamProject.TeamId)
+                                               .Contains(team.Id)
+                                       select team;
+
+                // The project's teams
+                ViewBag.Teams = from teamProject in db.TeamProjects
+                                join team in db.Teams
+                                on teamProject.TeamId equals team.Id
+                                where teamProject.ProjectId == project.Id
+                                select team;
+
+                // Every user in the project
+                ViewBag.AllUsers = GetAllUsers(project);
 
                 SetAccessRights(project);
                 return View(project);
