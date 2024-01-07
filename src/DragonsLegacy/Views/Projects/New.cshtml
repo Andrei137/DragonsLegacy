@@ -18,14 +18,14 @@
 
             @Html.ValidationSummary(false, "", new { @class = "text-danger" })
 
-            @Html.Label("Name", "Team's Name")
+            @Html.Label("Name", "Project's Name")
             <br />
 
             @Html.TextBox("Name", null, new { @class = "form-control" })
             @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
             <br /><br />
 
-            @Html.Label("Description", "Team's Description")
+            @Html.Label("Description", "Project's Description")
             <br />
 
             @Html.TextArea("Description", null, new { @class = "form-control" })

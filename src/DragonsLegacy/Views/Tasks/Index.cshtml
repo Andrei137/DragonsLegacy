@@ -1,0 +1,40 @@
+﻿<h2 class="text-center">Index Tasks</h2>
+
+@if (ViewBag.Message != null)
+{
+    <br />
+    <br />
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br />
+<br />
+
+@using (Html.BeginForm("Index", "Tasks", FormMethod.Get))
+{
+    <div class="filter-container">
+        <label for="taskFilter">Filter:</label>
+        @Html.DropDownList("taskFilter", new SelectList(new[]
+        {
+            new SelectListItem { Text = "Not Started", Value = "NotStarted" },
+            new SelectListItem { Text = "In Progress", Value = "InProgress" },
+            new SelectListItem { Text = "Completed", Value = "Completed" }
+        }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
+    </div>
+}
+
+@foreach (DragonsLegacy.Models.Task task in ViewBag.Tasks)
+{
+    <div class="card">
+
+        @Html.Partial("GeneralInfo", task)
+
+    </div>
+
+    <div class="text-center">
+        <a href="/Tasks/Show/@task.Id" class="btn btn-primary">Show Task</a>
+    </div>
+    <br />
+}

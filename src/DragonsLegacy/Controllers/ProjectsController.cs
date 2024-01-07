@@ -122,7 +122,6 @@ namespace DragonsLegacy.Controllers
             }
 
             task.StartDate = DateTime.Now;
-            task.UserId = _userManager.GetUserId(User);
 
             if (ModelState.IsValid)
             {

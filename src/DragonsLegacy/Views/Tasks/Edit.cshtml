@@ -1,0 +1,180 @@
+﻿@model DragonsLegacy.Models.Task
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br />
+<br />
+
+<h2 class="text-center mt-5">Edit Task</h2>
+<br />
+
+@if (ViewBag.IsOrganizer)
+{
+    @using (Html.BeginForm(actionName: "Edit", controllerName: "Tasks"))
+    {
+        <div class="row">
+            <div class="col-6 offset-3">
+
+                @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+                @Html.Label("Name", "Name")
+                <br />
+                <textarea class="form-control" name="Name">@Model.Name</textarea>
+                @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
+                <br /><br />
+
+                @Html.Label("Description", "Description")
+                <br />
+                <textarea class="form-control" name="Description">@Model.Description</textarea>
+                @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
+                <br /><br />
+
+                @Html.Label("Priority", "Priority")
+                <br />
+                <select name="Priority" class="form-control">
+                    @if (@Model.Priority == 1)
+                    {
+                        <option selected value="1">Low</option>
+                    }
+                    else
+                    {
+                        <option value="1">Low</option>
+                    }
+                    @if (@Model.Priority == 2)
+                    {
+                        <option selected value="2">Medium</option>
+                    }
+                    else
+                    {
+                        <option value="2">Medium</option>
+                    }
+                    @if (@Model.Priority == 3)
+                    {
+                        <option selected value="3">High</option>
+                    }
+                    else
+                    {
+                        <option value="3">High</option>
+                    }
+                </select>
+                <br /><br />
+
+                @Html.Label("Status", "Status")
+                <br />
+                <select name="Status" class="form-control">
+                    @if (@Model.Status == "NotStarted")
+                    {
+                        <option selected>Not Started</option>
+                    }
+                    else
+                    {
+                        <option value="NotStarted">Not Started</option>
+                    }
+                    @if (@Model.Status == "InProgress")
+                    {
+                        <option selected>In Progress</option>
+                    }
+                    else
+                    {
+                        <option value="InProgress">In Progress</option>
+                    }
+                    @if (@Model.Status == "Completed")
+                    {
+                        <option selected>Completed</option>
+                    }
+                    else
+                    {
+                        <option value="Completed">Completed</option>
+                    }
+                </select>
+                <br /><br />
+
+                @Html.Label("Due Date", "Deadline")
+                <br />
+                <input type="date" name="Deadline" class="form-control"/>
+                <br /><br />
+
+                <input type="hidden" name="StartDate" value="@Model.StartDate" />
+                <input type="hidden" name="EndDate" value="@Model.EndDate" />
+                <input type="hidden" name="UserId" value="@Model.UserId" />
+
+                @Html.Label("Experience Points", "ExperiencePoints")
+                <br />
+                <input type="number" class="form-control" name="ExperiencePoints" value="@Model.ExperiencePoints">
+                @Html.ValidationMessage("ExperiencePoints", null, new { @class = "text-danger" })
+                <br /><br />
+
+                @Html.Label("Coins", "Coins")
+                <br />
+                <input type="number"class="form-control" name="Coins" value="@Model.Coins">
+                @Html.ValidationMessage("Coins", null, new { @class = "text-danger" })
+                <br /><br />
+
+                <button class="btn btn-success" type="submit">Edit</button>
+
+            </div>
+
+        </div>
+    }
+}
+else if (ViewBag.IsUser)
+{
+    @using (Html.BeginForm(actionName: "Edit", controllerName: "Tasks"))
+    {
+        <div class="row">
+            <div class="col-6 offset-3">
+
+                @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+                @Html.Label("Status", "Status")
+                <br />
+                <select name="Status" class="form-control">
+                @if (@Model.Status == "NotStarted")
+                {
+                    <option selected>Not Started</option>
+                }
+                else
+                {
+                    <option value="NotStarted">Not Started</option>
+                }
+                @if (@Model.Status == "InProgress")
+                {
+                      <option selected>In Progress</option>
+                }
+                else
+                {
+                     <option value="InProgress">In Progress</option>
+                }
+                @if (@Model.Status == "Completed")
+                {
+                    <option selected>Completed</option>
+                }
+                else
+                {
+                    <option value="Completed">Completed</option>
+                }
+                </select>
+                <br /><br />
+
+                <input type="hidden" name="Name" value="@Model.Name" />
+                <input type="hidden" name="Description" value="@Model.Description" />
+                <input type="hidden" name="Priority" value="@Model.Priority" />
+                <input type="hidden" name="Deadline" value="@Model.Deadline" />
+                <input type="hidden" name="StartDate" value="@Model.StartDate" />
+                <input type="hidden" name="EndDate" value="@Model.EndDate" />
+                <input type="hidden" name="UserId" value="@Model.UserId" />
+                <input type="hidden" name="ExperiencePoints" value="@Model.ExperiencePoints" />
+                <input type="hidden" name="Coins" value="@Model.Coins" />
+
+                <button class="btn btn-success" type="submit">Edit</button>
+
+            </div>
+
+        </div>
+    }
+}

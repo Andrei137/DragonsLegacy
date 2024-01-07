@@ -109,11 +109,11 @@
                             <br />
                             <textarea class="form-control" name="Name"></textarea>
                             @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
-                            <br />
+                            <br /><br />
 
                             @Html.Label("Description", "Description")
                             <br />
-                            <textarea class="form-control" name="Description"></textarea
+                            <textarea class="form-control" name="Description"></textarea>
                             @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
                             <br /><br />
 
@@ -146,18 +146,18 @@
 
                             <i class="bi bi-card-list"></i>
                             <label>Assign User</label>
-                            @Html.DropDownList("User", new SelectList(ViewBag.AllUsers, "Value", "Text"), null, new { @class = "form-control" })
+                            @Html.DropDownList("UserId", new SelectList(ViewBag.AllUsers, "Value", "Text"), null, new { @class = "form-control" })
                             <br/><br/>
 
                             @Html.Label("Experience Points", "ExperiencePoints")
                             <br />
-                            <textarea class="form-control" name="ExperiencePoints"></textarea
+                            <input type="number" class="form-control" name="ExperiencePoints">
                             @Html.ValidationMessage("ExperiencePoints", null, new { @class = "text-danger" })
                             <br /><br />
 
                             @Html.Label("Coins", "Coins")
                             <br />
-                            <textarea class="form-control" name="Coins"></textarea
+                            <input type="number" class="form-control" name="Coins">
                             @Html.ValidationMessage("Coins", null, new { @class = "text-danger" })
                             <br /><br />
 

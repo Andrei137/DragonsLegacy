@@ -1,0 +1,54 @@
+﻿@model DragonsLegacy.Models.Task
+
+<h2 class="text-center">Show Task</h2>
+
+@if (ViewBag.Message != null)
+{
+    <br />
+    <br />
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br />
+<br />
+
+<div class="card">
+
+    @Html.Partial("GeneralInfo", Model)
+
+    <br />
+
+    @if (ViewBag.ShowButtons)
+    {
+        <div class="d-flex flex-row justify-content-around">
+
+            <a class="btn btn-primary" href="/Tasks/Edit/@Model.Id">Edit</a>
+
+            <form method="post" action="/Tasks/Delete/@Model.Id">
+
+                <button type="submit" class="btn btn-danger">Delete</button>
+
+            </form>
+
+        </div>
+
+        <br />
+    }
+    else if (ViewBag.IsAdmin)
+    {
+        <div class="d-flex flex-row justify-content-around">
+
+            <form method="post" action="/Tasks/Delete/@Model.Id">
+
+                <button type="submit" class="btn btn-danger">Delete</button>
+
+            </form>
+
+        </div>
+
+        <br />
+    }
+
+</div>

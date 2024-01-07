@@ -3,6 +3,8 @@ using DragonsLegacy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Task = DragonsLegacy.Models.Task;
 
 namespace DragonsLegacy.Controllers
@@ -22,13 +24,61 @@ namespace DragonsLegacy.Controllers
             _roleManager = roleManager;
         }
 
+        public IActionResult Index(string taskFilter = "NotStarted")
+        {
+            if (TempData.ContainsKey("message"))
+            {
+                ViewBag.Message = TempData["message"];
+                ViewBag.Alert = TempData["messageType"];
+            }
+
+            if (taskFilter == "NotStarted" || taskFilter == "InProgress" || taskFilter == "Completed")
+            { // Select the tasks that have the status NotStarted, InProgress or Completed
+              
+                // Current user
+                var userId = _userManager.GetUserId(User);
+
+                // Select the tasks of the current user
+                var tasks = from task in db.Tasks
+                            where task.UserId == userId && task.Status == taskFilter
+                            select task;
+
+                ViewBag.Tasks = tasks;
+            }
+            else // Invalid task filter
+            {
+                TempData["message"] = "Invalid task filter";
+                TempData["messageType"] = "alert-danger";
+                return RedirectToAction("Index");
+            }
+
+            return View();
+        }
+
+        public IActionResult Show(int id)
+        {
+            if (TempData.ContainsKey("message"))
+            {
+                ViewBag.Message = TempData["message"];
+                ViewBag.Alert = TempData["messageType"];
+            }
+
+            Task task = db.Tasks
+                          .Where(p => p.Id == id)
+                          .First();
+
+            SetAccessRights(task);
+            return View(task);
+        }
+
         public IActionResult Edit(int id)
         {
             Task task = db.Tasks.Find(id);
-            
-            // If the current user is the organizer of the project
-            if (task.Project.OrganizerId == _userManager.GetUserId(User) ||
-                User.IsInRole("Admin"))
+
+            SetAccessRights(task);
+
+            // If the current user has the rights to edit
+            if (ViewBag.ShowButtons)
             {
                 return View(task);
             }
@@ -36,7 +86,7 @@ namespace DragonsLegacy.Controllers
             {
                 TempData["message"] = "You don't have the rights to edit this task";
                 TempData["messageType"] = "alert-danger";
-                return RedirectToAction("Index", "Projects");
+                return RedirectToAction("Index");
             }
         }
 
@@ -44,11 +94,11 @@ namespace DragonsLegacy.Controllers
         public IActionResult Edit(int id, Task requestTask)
         {
             Task task = db.Tasks.Find(id);
+            SetAccessRights(task);
 
             if (ModelState.IsValid) // Modify the task
             {
-                if (task.Project.OrganizerId == _userManager.GetUserId(User) ||
-                User.IsInRole("Admin"))
+                if (ViewBag.IsOrganizer)
                 {
                     task.Name = requestTask.Name;
                     task.Description = requestTask.Description;
@@ -59,13 +109,27 @@ namespace DragonsLegacy.Controllers
                     task.ExperiencePoints = requestTask.ExperiencePoints;
                     task.Coins = requestTask.Coins;
                     db.SaveChanges();
-                    return Redirect("Projects/Show/" + task.ProjectId);
+                    return RedirectToAction("Index");
+                }
+                else if (ViewBag.IsUser)
+                {
+                    task.Status = requestTask.Status;
+                    if(task.Status == "Completed")
+                    {
+                        task.EndDate = DateTime.Now;
+                    }
+                    else
+                    {
+                        task.EndDate = null;
+                    }
+                    db.SaveChanges();
+                    return RedirectToAction("Index");
                 }
                 else
                 {
                     TempData["message"] = "You don't have the rights to edit this task";
                     TempData["messageType"] = "alert-danger";
-                    return RedirectToAction("Index", "Projects");
+                    return RedirectToAction("Index");
                 }
             }
             else // Invalid model state
@@ -83,14 +147,45 @@ namespace DragonsLegacy.Controllers
             {
                 db.Tasks.Remove(task);
                 db.SaveChanges();
-                return Redirect("/Projects/Show/" + task.ProjectId);
+                return Redirect("/Tasks/Show/" + task.ProjectId);
             }
             else
             {
                 TempData["message"] = "You don't have the rights to remove this task";
                 TempData["messageType"] = "alert-danger";
-                return RedirectToAction("Index", "Projects");
+                return RedirectToAction("Index");
             }
+        }
+        private void SetAccessRights(Task task)
+        {
+            ViewBag.ShowButtons = false;
+            ViewBag.IsOrganizer = false;
+            ViewBag.IsUser = false;
+
+            var projects = from project in db.Projects
+                                  where project.Id == task.ProjectId
+                                  select project;
+            var current_project = projects.First();
+
+            // If the current user is the organizer
+            if (current_project.OrganizerId == _userManager.GetUserId(User))
+            {
+                ViewBag.IsOrganizer = true;
+            }
+
+            // If this is the task of the current user, show the buttons
+            if (task.UserId == _userManager.GetUserId(User))
+            {
+                ViewBag.IsUser = true;
+            }
+
+            // If the current user is the organizer or this is his task, show the buttons
+            if (current_project.OrganizerId == _userManager.GetUserId(User) || task.UserId == _userManager.GetUserId(User))
+            {
+                ViewBag.ShowButtons = true;
+            }
+
+            ViewBag.IsAdmin = User.IsInRole("Admin");
         }
     }
 }

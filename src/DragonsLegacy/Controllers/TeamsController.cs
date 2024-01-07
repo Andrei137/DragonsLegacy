@@ -136,6 +136,16 @@ namespace DragonsLegacy.Controllers
                               where userTeam.TeamId == id && userTeam.UserId != team.ManagerId
                               select user;
 
+            // Select all the tasks that are assigned to a member in the team
+            ViewBag.Tasks = from task in db.Tasks
+                            where (from userTeam in db.UserTeams
+                                   join user in db.Users
+                                   on userTeam.UserId equals user.Id
+                                   where userTeam.TeamId == id
+                                   select user.Id)
+                                   .Contains(task.UserId)
+                            select task;
+
             SetAccessRights(team);
             return View(team);
         }
