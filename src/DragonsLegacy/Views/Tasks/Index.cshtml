@@ -25,16 +25,25 @@
     </div>
 }
 
-@foreach (DragonsLegacy.Models.Task task in ViewBag.Tasks)
+@if (ViewBag.Count > 0)
 {
-    <div class="card">
+    @foreach (DragonsLegacy.Models.Task task in ViewBag.Tasks)
+    {
+        <div class="card">
 
-        @Html.Partial("GeneralInfo", task)
+            @Html.Partial("GeneralInfo", task)
 
+        </div>
+
+        <div class="text-center">
+            <a href="/Tasks/Show/@task.Id" class="btn btn-primary">Show Task</a>
+        </div>
+        <br />
+    }
+}
+else
+{
+    <div class="alert alert-info p-3 rounded-3 text-center">
+        No tasks found.
     </div>
-
-    <div class="text-center">
-        <a href="/Tasks/Show/@task.Id" class="btn btn-primary">Show Task</a>
-    </div>
-    <br />
 }

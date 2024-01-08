@@ -35,6 +35,7 @@ namespace DragonsLegacy.Controllers
                 var projects = from project in db.Projects
                             select project;
                 ViewBag.Projects = projects;
+                ViewBag.Count = projects.Count();
             }
             else if (projectFilter == "MyProjects") // Select the projects the user is working on
             {
@@ -44,6 +45,7 @@ namespace DragonsLegacy.Controllers
                             where userProject.UserId == _userManager.GetUserId(User)
                             select project;
                 ViewBag.Projects = projects;
+                ViewBag.Count = projects.Count();
             }
             else if (projectFilter == "OrganizedProjects") // Select the projects for which the user is the organizer
             {
@@ -51,6 +53,7 @@ namespace DragonsLegacy.Controllers
                             where project.OrganizerId == _userManager.GetUserId(User)
                             select project;
                 ViewBag.Projects = projects;
+                ViewBag.Count = projects.Count();
             }
             else // Invalid project filter
             {

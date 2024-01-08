@@ -1,0 +1,51 @@
+﻿@model DragonsLegacy.Models.Achievement
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br />
+<br />
+
+<h2 class="text-center mt-5">Add Achievement</h2>
+<br />
+@using (Html.BeginForm(actionName: "New", controllerName: "Achievements"))
+{
+    <div class="row">
+        <div class="col-6 offset-3">
+
+            @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+            @Html.Label("Name", "Achievement's Name")
+            <br />
+            @Html.TextBox("Name", null, new { @class = "form-control" })
+            @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
+            <br /><br />
+
+            @Html.Label("Description", "Achievement's Description")
+            <br />
+            @Html.TextArea("Description", null, new { @class = "form-control" })
+            @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
+            <br /><br />
+
+            @Html.Label("Experience Points", "ExperiencePoints")
+            <br />
+            <input type="number" class="form-control" name="ExperiencePoints">
+            @Html.ValidationMessage("ExperiencePoints", null, new { @class = "text-danger" })
+            <br /><br />
+
+            @Html.Label("Coins", "Coins")
+            <br />
+            <input type="number" class="form-control" name="Coins">
+            @Html.ValidationMessage("Coins", null, new { @class = "text-danger" })
+            <br /><br />
+
+            <button class="btn btn-success" type="submit">Add</button>
+
+        </div>
+
+    </div>
+}

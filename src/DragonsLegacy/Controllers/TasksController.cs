@@ -3,8 +3,6 @@ using DragonsLegacy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.SignalR;
 using Task = DragonsLegacy.Models.Task;
 
 namespace DragonsLegacy.Controllers
@@ -44,6 +42,7 @@ namespace DragonsLegacy.Controllers
                             select task;
 
                 ViewBag.Tasks = tasks;
+                ViewBag.Count = tasks.Count();
             }
             else // Invalid task filter
             {
@@ -142,12 +141,13 @@ namespace DragonsLegacy.Controllers
         public IActionResult Delete(int id)
         {
             Task task = db.Tasks.Find(id);
-            if (task.Project.OrganizerId == _userManager.GetUserId(User) ||
-                User.IsInRole("Admin"))
+            SetAccessRights(task);
+
+            if (ViewBag.IsOrganizer || ViewBag.IsAdmin)
             {
                 db.Tasks.Remove(task);
                 db.SaveChanges();
-                return Redirect("/Tasks/Show/" + task.ProjectId);
+                return RedirectToAction("Index");
             }
             else
             {

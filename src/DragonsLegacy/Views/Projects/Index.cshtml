@@ -26,18 +26,25 @@
 
 <br /><br />
 
-@foreach (DragonsLegacy.Models.Project project in ViewBag.Projects)
+@if (ViewBag.Count > 0)
 {
-    <div class="card">
+    @foreach (DragonsLegacy.Models.Project project in ViewBag.Projects)
+    {
+        <div class="card">
 
-        @Html.Partial("GeneralInfo", project)
+            @Html.Partial("GeneralInfo", project)
 
-    </div>
+        </div>
 
-    <div class="text-center">
-        <a href="/Projects/Show/@project.Id" class="btn btn-primary">Show Project</a>
-    </div>
-    <br />
+        <div class="text-center">
+            <a href="/Projects/Show/@project.Id" class="btn btn-primary">Show Project</a>
+        </div>
+        <br />
+    }
 }
-
-<br /><br />
+else
+{
+    <div class="alert alert-info p-3 rounded-3 text-center">
+        No projects found.
+    </div>
+}

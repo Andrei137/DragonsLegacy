@@ -1,0 +1,53 @@
+﻿<h2 class="text-center">Index Items</h2>
+
+@if (ViewBag.Message != null)
+{
+    <br />
+    <br />
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br />
+<br />
+
+@using (Html.BeginForm("Index", "Items", FormMethod.Get))
+{
+    <div class="filter-container">
+        <label for="itemFilter">Filter:</label>
+        @Html.DropDownList("itemFilter", new SelectList(new[]
+        {
+            new SelectListItem { Text = "Not Owned", Value = "NotOwned" },
+            new SelectListItem { Text = "Owned", Value = "Owned" },
+            new SelectListItem { Text = "All", Value = "All" }
+        }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
+    </div>
+}
+
+
+<br />
+<br />
+
+@if (ViewBag.Count > 0)
+{
+    @foreach (DragonsLegacy.Models.Item item in ViewBag.Items)
+    {
+        <div class="card">
+
+            @Html.Partial("GeneralInfo", item)
+
+        </div>
+
+        <div class="text-center">
+            <a href="/Items/Show/@item.Id" class="btn btn-primary">Show Item</a>
+        </div>
+        <br />
+    }
+}
+else
+{
+    <div class="alert alert-info p-3 rounded-3 text-center">
+        No items found.
+    </div>
+}

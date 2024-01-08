@@ -1,0 +1,53 @@
+﻿<h2 class="text-center">Index Achievements</h2>
+
+@if (ViewBag.Message != null)
+{
+    <br />
+    <br />
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br />
+<br />
+
+@using (Html.BeginForm("Index", "Achievements", FormMethod.Get))
+{
+    <div class="filter-container">
+        <label for="achievementFilter">Filter:</label>
+        @Html.DropDownList("achievementFilter", new SelectList(new[]
+        {
+            new SelectListItem { Text = "Not Achieved", Value = "NotAchieved" },
+            new SelectListItem { Text = "Achieved", Value = "Achieved" },
+            new SelectListItem { Text = "All", Value = "All" }
+        }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
+    </div>
+}
+
+
+<br />
+<br />
+
+@if (ViewBag.Count > 0)
+{
+    @foreach (DragonsLegacy.Models.Achievement achievement in ViewBag.Achievements)
+    {
+        <div class="card">
+
+            @Html.Partial("GeneralInfo", achievement)
+
+        </div>
+
+        <div class="text-center">
+            <a href="/Achievements/Show/@achievement.Id" class="btn btn-primary">Show Achievement</a>
+        </div>
+        <br />
+    }
+}
+else
+{
+    <div class="alert alert-info p-3 rounded-3 text-center">
+        No achievements found.
+    </div>
+}

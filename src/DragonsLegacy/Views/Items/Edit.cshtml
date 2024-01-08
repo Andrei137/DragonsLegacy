@@ -1,0 +1,51 @@
+﻿@model DragonsLegacy.Models.Item
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br />
+<br />
+
+<h2 class="text-center mt-5">Edit Item</h2>
+<br />
+
+ @using (Html.BeginForm(actionName: "Edit", controllerName: "Items"))
+    {
+        <div class="row">
+            <div class="col-6 offset-3">
+
+                @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+                
+                @Html.Label("Name", "Name")
+                <br />
+                <textarea class="form-control" name="Name">@Model.Name</textarea>
+                @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
+                <br /><br />
+
+                @Html.Label("Description", "Description")
+                <br />
+                <textarea class="form-control" name="Description">@Model.Description</textarea>
+                @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
+                <br /><br />
+
+                @Html.Label("Price", "Price")
+                <br />
+                <input type="number" class="form-control" name="Price" value="@Model.Price">
+                @Html.ValidationMessage("Price", null, new { @class = "text-danger" })
+                <br /><br />
+
+                @Html.Label("Number of available items", "NumberOfItems")
+                <br />
+                <input type="number" class="form-control" name="NumberOfItems" value="@Model.NumberOfItems">
+                @Html.ValidationMessage("NumberOfItems", null, new { @class = "text-danger" })
+                <br /><br />
+
+                <button class="btn btn-success" type="submit">Edit</button>
+
+            </div>
+        </div>
+    }

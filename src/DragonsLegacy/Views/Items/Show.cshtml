@@ -1,0 +1,45 @@
+﻿@model DragonsLegacy.Models.Item
+
+<h2 class="text-center">Show Item</h2>
+
+@if (ViewBag.Message != null)
+{
+    <br />
+    <br />
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br /><br />
+
+<div class="card">
+
+    @Html.Partial("GeneralInfo", Model)
+
+    <br />
+
+    <div class="d-flex flex-row justify-content-around">
+
+        <form action="/Items/Index/@Model.Id">
+
+            <button type="submit" class="btn btn-primary">Buy</button>
+
+        </form>
+
+        @if (ViewBag.IsAdmin)
+        {
+                <a class="btn btn-primary" href="/Items/Edit/@Model.Id">Edit</a>
+
+                <form method="post" action="/Items/Delete/@Model.Id">
+
+                    <button type="submit" class="btn btn-danger">Delete</button>
+
+                </form>
+        }
+    </div>
+
+    <br />
+</div>
+
+<br />
