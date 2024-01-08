@@ -111,6 +111,7 @@ namespace DragonsLegacy.Controllers
             // Every user in the project
             ViewBag.AllUsers = GetAllUsers(project);
 
+            ViewBag.AllCategories = GetAllCategories();
             SetAccessRights(project);
             return View(project);
         }
@@ -130,7 +131,18 @@ namespace DragonsLegacy.Controllers
             {
                 TempData["message"] = "Success";
                 TempData["messageType"] = "alert-success";
+
                 db.Tasks.Add(task);
+                db.SaveChanges();
+
+                // Add the categories to the task
+                foreach (var category in task.SelectedCategories)
+                {
+                    TaskCategory taskCategory = new TaskCategory();
+                    taskCategory.TaskId = task.Id;
+                    taskCategory.CategoryId = category; // already the id
+                    db.TaskCategories.Add(taskCategory);
+                }
                 db.SaveChanges();
                 return Redirect("/Projects/Show/" + task.ProjectId);
             }
@@ -429,6 +441,24 @@ namespace DragonsLegacy.Controllers
                 });
             }
 
+            return selectList;
+        }
+
+        [NonAction]
+        private IEnumerable<SelectListItem> GetAllCategories()
+        {
+            var selectList = new List<SelectListItem>();
+            var categories = from category in db.Categories
+                             select category;
+
+            foreach (var category in categories)
+            {
+                selectList.Add(new SelectListItem
+                {
+                    Value = category.Id.ToString(),
+                    Text = category.Name.ToString()
+                });
+            }
             return selectList;
         }
     }

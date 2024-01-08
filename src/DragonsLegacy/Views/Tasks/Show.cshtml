@@ -52,3 +52,98 @@
     }
 
 </div>
+
+@* Showing all comments *@
+
+@foreach (var comm in Model.Comments)
+{
+    <div class="container">
+        <div class="row">
+            <div class="col-md-2"></div>
+
+            <div class="col-md-8">
+
+                <div>
+
+                    <p>@Html.Raw(comm.Content)</p>
+                    <small>@comm.Date</small>
+                    <strong><i class="bi bi-person"></i>@comm.User.UserName</strong>
+
+                </div>
+                <br>
+
+
+                @if (comm.UserId == ViewBag.CurrentUser || ViewBag.IsAdmin)
+                {
+
+                    <div class="d-flex">
+
+                        <div>
+
+                            <a class="btn btn-outline-primary" href="/Comments/Edit/@comm.Id"><i class="bi bi-pencil-square"></i>Edit</a>
+
+                        </div>
+
+                        <div>
+
+                            <form method="post" action="/Comments/Delete/@comm.Id">
+
+                                <button class="btn btn-outline-danger" type="submit"><i class="bi bi-trash"></i>Delete</button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+                }
+
+                <br />
+
+            </div>
+
+            <div class="col-md-2"></div>
+
+        </div>
+
+    </div>
+}
+
+@* Form for adding a new comment *@
+
+<div class="container">
+
+    <div class="row">
+
+        <div class="col-md-2"></div>
+
+        <div class="col-md-8">
+
+            <div class="card">
+
+                <form method="post" action="/Tasks/Show/@Model.Id">
+
+                    <div class="card-body">
+
+                        <input type="hidden" name="TaskId" value="@Model.Id" />
+
+                        <label>Content</label>
+                        <br />
+                        @Html.TextArea("Content", null, new { @class = "summernote" })
+                        @Html.ValidationMessage("Content", null, new { @class = "text-danger" })
+                        <br /><br />
+
+                        <button class="btn btn-success " type="submit">Add comment</button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-2"></div>
+
+    </div>
+
+</div>

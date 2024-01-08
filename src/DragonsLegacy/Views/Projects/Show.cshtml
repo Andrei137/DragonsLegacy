@@ -149,6 +149,15 @@
                             @Html.DropDownList("UserId", new SelectList(ViewBag.AllUsers, "Value", "Text"), null, new { @class = "form-control" })
                             <br/><br/>
 
+                            @Html.Label("Categories", "SelectedCategories")
+                            <br />
+                            @foreach (var category in ViewBag.AllCategories)
+                            {
+                                <input type="checkbox" name="SelectedCategories" value="@category.Value" /> @category.Text
+                                <br />
+                            }
+                            <br /><br />
+
                             @Html.Label("Experience Points", "ExperiencePoints")
                             <br />
                             <input type="number" class="form-control" name="ExperiencePoints">

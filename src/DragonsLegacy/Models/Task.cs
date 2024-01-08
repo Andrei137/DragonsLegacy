@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DragonsLegacy.Models
 {
@@ -53,5 +54,9 @@ namespace DragonsLegacy.Models
 
         // The task has several categories
         public virtual ICollection<TaskCategory>? TaskCategories { get; set; }
+
+        // List of selected categories
+        [NotMapped]
+        public int[]? SelectedCategories { get; set; }
     }
 }

@@ -5,7 +5,7 @@
     @Html.Label("Content", "Comment")
     <br />
 
-    @Html.Editor("Content", null, new { @class = "form-control" })
+    @Html.TextArea("Content", null, new { @class = "summernote" })
     @Html.ValidationMessage("Content", null, new { @class = "text-danger" })
     <br />
 

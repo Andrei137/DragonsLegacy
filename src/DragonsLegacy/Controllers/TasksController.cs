@@ -1,8 +1,12 @@
 ﻿using DragonsLegacy.Data;
 using DragonsLegacy.Models;
+using Ganss.Xss;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System.Data;
 using Task = DragonsLegacy.Models.Task;
 
 namespace DragonsLegacy.Controllers
@@ -63,11 +67,39 @@ namespace DragonsLegacy.Controllers
             }
 
             Task task = db.Tasks
-                          .Where(p => p.Id == id)
+                          .Include("Comments")
+                          .Include("Comments.User")
+                          .Where(t => t.Id == id)
                           .First();
 
             SetAccessRights(task);
             return View(task);
+        }
+
+        [HttpPost]
+        public IActionResult Show([FromForm] Comment comment)
+        {
+            ModelState.Clear();
+            var sanitizer = new HtmlSanitizer();
+
+            comment.Date = DateTime.Now;
+            comment.UserId = _userManager.GetUserId(User);
+
+            if (ModelState.IsValid)
+            {
+                TempData["message"] = "Success";
+                TempData["messageType"] = "alert-success";
+                comment.Content = sanitizer.Sanitize(comment.Content);
+                db.Comments.Add(comment);
+                db.SaveChanges();
+                return Redirect("/Tasks/Show/" + comment.TaskId);
+            }
+            else
+            {
+                TempData["message"] = "Error";
+                TempData["messageType"] = "alert-danger";
+                return RedirectToAction("Index");
+            }
         }
 
         public IActionResult Edit(int id)
@@ -94,6 +126,8 @@ namespace DragonsLegacy.Controllers
         {
             Task task = db.Tasks.Find(id);
             SetAccessRights(task);
+
+            // TO DO: edit categories
 
             if (ModelState.IsValid) // Modify the task
             {
@@ -140,11 +174,24 @@ namespace DragonsLegacy.Controllers
         [HttpPost]
         public IActionResult Delete(int id)
         {
-            Task task = db.Tasks.Find(id);
+            Task task = db.Tasks
+                          .Include("Comments")
+                          .Where(t => t.Id == id)
+                          .First();
+
             SetAccessRights(task);
 
             if (ViewBag.IsOrganizer || ViewBag.IsAdmin)
             {
+                // Delete associated comments
+                if (task.Comments.Count > 0)
+                {
+                    foreach (var comment in task.Comments)
+                    {
+                        db.Comments.Remove(comment);
+                    }
+                }
+
                 db.Tasks.Remove(task);
                 db.SaveChanges();
                 return RedirectToAction("Index");
@@ -161,6 +208,7 @@ namespace DragonsLegacy.Controllers
             ViewBag.ShowButtons = false;
             ViewBag.IsOrganizer = false;
             ViewBag.IsUser = false;
+            ViewBag.CurrentUser = _userManager.GetUserId(User);
 
             var projects = from project in db.Projects
                                   where project.Id == task.ProjectId
@@ -186,6 +234,24 @@ namespace DragonsLegacy.Controllers
             }
 
             ViewBag.IsAdmin = User.IsInRole("Admin");
+        }
+
+        [NonAction]
+        private IEnumerable<SelectListItem> GetAllCategories()
+        {
+            var selectList = new List<SelectListItem>();
+            var categories = from category in db.Categories
+                             select category;
+
+            foreach (var category in categories)
+            {
+                selectList.Add(new SelectListItem
+                {
+                    Value = category.Id.ToString(),
+                    Text = category.Name.ToString()
+                });
+            }
+            return selectList;
         }
     }
 }

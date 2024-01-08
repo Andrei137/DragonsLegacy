@@ -1,5 +1,6 @@
 ﻿using DragonsLegacy.Data;
 using DragonsLegacy.Models;
+using Ganss.Xss;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DragonsLegacy.Controllers
@@ -17,17 +18,19 @@ namespace DragonsLegacy.Controllers
         public IActionResult Edit(int id)
         {
             Comment comment = db.Comments.Find(id);
-
             return View(comment);
         }
 
         [HttpPost]
         public IActionResult Edit(int id, Comment requestComment)
         {
+            ModelState.Clear();
+            var sanitizer = new HtmlSanitizer();
             Comment comment = db.Comments.Find(id);
 
             if (ModelState.IsValid) // Modify the comment
             {
+                requestComment.Content = sanitizer.Sanitize(comment.Content);
                 comment.Content = requestComment.Content;
                 db.SaveChanges();
 
