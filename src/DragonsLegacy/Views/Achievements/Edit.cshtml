@@ -28,7 +28,7 @@
 
             @Html.Label("Description", "Achievement's Description")
             <br />
-            <textarea class="form-control" name="Description">@Model.Description</textarea>
+            <textarea class="summernote" name="Description">@Model.Description</textarea>
             @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
             <br /><br />
 

@@ -1,5 +1,6 @@
 ﻿using DragonsLegacy.Data;
 using DragonsLegacy.Models;
+using Ganss.Xss;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -125,6 +126,7 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert = TempData["messageType"];
             }
 
+            var sanitizer = new HtmlSanitizer();
             task.StartDate = DateTime.Now;
 
             if (ModelState.IsValid)
@@ -132,6 +134,7 @@ namespace DragonsLegacy.Controllers
                 TempData["message"] = "Success";
                 TempData["messageType"] = "alert-success";
 
+                task.Description = sanitizer.Sanitize(task.Description);
                 db.Tasks.Add(task);
                 db.SaveChanges();
 
@@ -306,6 +309,7 @@ namespace DragonsLegacy.Controllers
         [HttpPost]
         public IActionResult New(Project project)
         {
+            var sanitizer = new HtmlSanitizer();
             ApplicationUser user = _userManager.GetUserAsync(User).Result;
 
             // The current user becomes the organizer
@@ -313,6 +317,7 @@ namespace DragonsLegacy.Controllers
 
             if (ModelState.IsValid) // Add the project to the database
             {
+                project.Description = sanitizer.Sanitize(project.Description);
                 db.Projects.Add(project);
                 db.SaveChanges();
 
@@ -358,12 +363,14 @@ namespace DragonsLegacy.Controllers
         [HttpPost]
         public IActionResult Edit(int id, Project requestProject)
         {
+            var sanitizer = new HtmlSanitizer();
             Project project = db.Projects.Find(id);
             if (ModelState.IsValid) // Modify the project
             {
                 if (project.OrganizerId == _userManager.GetUserId(User) ||
                     User.IsInRole("Admin"))
                 {
+                    requestProject.Description = sanitizer.Sanitize(requestProject.Description);
                     project.Name = requestProject.Name;
                     project.Description = requestProject.Description;
                     db.SaveChanges();

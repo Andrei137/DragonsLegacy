@@ -1,5 +1,6 @@
 ﻿using DragonsLegacy.Data;
 using DragonsLegacy.Models;
+using Ganss.Xss;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -236,11 +237,13 @@ namespace DragonsLegacy.Controllers
         {
             ApplicationUser user = _userManager.GetUserAsync(User).Result;
 
+            var sanitizer = new HtmlSanitizer();
             // The current user becomes the manager
             team.ManagerId = user.Id;
 
             if (ModelState.IsValid) // Add the team to the database
             {
+                team.Description = sanitizer.Sanitize(team.Description);
                 db.Teams.Add(team);
                 db.SaveChanges();
 
@@ -294,12 +297,14 @@ namespace DragonsLegacy.Controllers
         [HttpPost]
         public IActionResult Edit(int id, Team requestTeam)
         {
+            var sanitizer = new HtmlSanitizer();
             Team team = db.Teams.Find(id);
             if (ModelState.IsValid) // Modify the team
             {
                 if (team.ManagerId == _userManager.GetUserId(User) ||
                     User.IsInRole("Admin"))
                 {
+                    requestTeam.Description = sanitizer.Sanitize(requestTeam.Description);
                     team.Name = requestTeam.Name;
                     team.Description = requestTeam.Description;
                     db.SaveChanges();

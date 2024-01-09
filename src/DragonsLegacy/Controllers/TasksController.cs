@@ -124,6 +124,7 @@ namespace DragonsLegacy.Controllers
         [HttpPost]
         public IActionResult Edit(int id, Task requestTask)
         {
+            var sanitizer = new HtmlSanitizer();
             Task task = db.Tasks.Find(id);
             SetAccessRights(task);
 
@@ -133,6 +134,7 @@ namespace DragonsLegacy.Controllers
             {
                 if (ViewBag.IsOrganizer)
                 {
+                    requestTask.Description = sanitizer.Sanitize(requestTask.Description);
                     task.Name = requestTask.Name;
                     task.Description = requestTask.Description;
                     task.Priority = requestTask.Priority;

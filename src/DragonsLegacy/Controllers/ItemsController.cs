@@ -1,5 +1,6 @@
 ﻿using DragonsLegacy.Data;
 using DragonsLegacy.Models;
+using Ganss.Xss;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -97,8 +98,10 @@ namespace DragonsLegacy.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult New(Item item)
         {
-            if(ModelState.IsValid) // Add the item to the database
+            var sanitizer = new HtmlSanitizer();
+            if (ModelState.IsValid) // Add the item to the database
             {
+                item.Description = sanitizer.Sanitize(item.Description);
                 db.Items.Add(item);
                 db.SaveChanges();
 
@@ -126,10 +129,12 @@ namespace DragonsLegacy.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Edit(int id, Item requestItem)
         {
+            var sanitizer = new HtmlSanitizer();
             Item item = db.Items.Find(id);
 
-            if(ModelState.IsValid) // Modify the item
+            if (ModelState.IsValid) // Modify the item
             {
+                requestItem.Description = sanitizer.Sanitize(requestItem.Description);
                 item.Name = requestItem.Name;
                 item.Description = requestItem.Description;
                 item.Multimedia = requestItem.Multimedia;

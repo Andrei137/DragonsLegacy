@@ -1,5 +1,6 @@
 ﻿using DragonsLegacy.Data;
 using DragonsLegacy.Models;
+using Ganss.Xss;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,13 +23,13 @@ namespace DragonsLegacy.Controllers
         }
         public IActionResult Index(string achievementFilter = "All")
         {
-            if(TempData.ContainsKey("message"))
+            if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
                 ViewBag.Alert = TempData["messageType"];
             }
 
-            if(achievementFilter == "NotAchieved") // Select the achievements that the current user doesn't have
+            if (achievementFilter == "NotAchieved") // Select the achievements that the current user doesn't have
             {
                 var achievements = from achievement in db.Achievements
                                    where !(from userAchievement in db.UserAchievements
@@ -40,7 +41,7 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Achievements = achievements;
                 ViewBag.Count = achievements.Count();
             }
-            else if(achievementFilter == "Achieved") // Select the achievements that the current user has
+            else if (achievementFilter == "Achieved") // Select the achievements that the current user has
             {
                 var achievements = from achievement in db.Achievements
                                    join userAchievement in db.UserAchievements
@@ -51,7 +52,7 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Achievements = achievements;
                 ViewBag.Count = achievements.Count();
             }
-            else if(achievementFilter == "All") // Select all achievements
+            else if (achievementFilter == "All") // Select all achievements
             {
                 var achievements = from achievement in db.Achievements
                                    select achievement;
@@ -96,8 +97,10 @@ namespace DragonsLegacy.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult New(Achievement achievement)
         {
-            if(ModelState.IsValid) // Add the achievement to the database
+            var sanitizer = new HtmlSanitizer();
+            if (ModelState.IsValid) // Add the achievement to the database
             {
+                achievement.Description = sanitizer.Sanitize(achievement.Description);
                 db.Achievements.Add(achievement);
                 db.SaveChanges();
 
@@ -125,10 +128,12 @@ namespace DragonsLegacy.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Edit(int id, Achievement requestAchievement)
         {
+            var sanitizer = new HtmlSanitizer();
             Achievement achievement = db.Achievements.Find(id);
 
-            if(ModelState.IsValid) // Modify the achievement
+            if (ModelState.IsValid) // Modify the achievement
             {
+                requestAchievement.Description = sanitizer.Sanitize(requestAchievement.Description);
                 achievement.Name = requestAchievement.Name;
                 achievement.Description = requestAchievement.Description;
                 achievement.ExperiencePoints = requestAchievement.ExperiencePoints;

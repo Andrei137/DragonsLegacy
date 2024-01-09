@@ -29,7 +29,7 @@
             @Html.Label("Description", "Team's Description")
             <br />
 
-            @Html.TextArea("Description", Model.Description, new { @class = "form-control" })
+            @Html.TextArea("Description", Model.Description, new { @class = "summernote" })
             @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
             <br /><br />
 
