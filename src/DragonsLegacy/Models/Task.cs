@@ -29,13 +29,12 @@ namespace DragonsLegacy.Models
 
         public DateTime? EndDate { get; set; }
 
-        // We will make it required in the future
-        // After we implement upload
         public string? Multimedia { get; set; }
 
         [Required(ErrorMessage = "Experience points are required")]
         public int ExperiencePoints { get; set; }
 
+        [Required(ErrorMessage = "Coins are required")]
         public int Coins { get; set; } = 0;
 
         // FK

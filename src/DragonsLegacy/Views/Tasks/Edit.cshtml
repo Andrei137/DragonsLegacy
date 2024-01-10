@@ -103,6 +103,22 @@
                 <input type="hidden" name="EndDate" value="@Model.EndDate" />
                 <input type="hidden" name="UserId" value="@Model.UserId" />
 
+                @Html.Label("Categories", "SelectedCategories")
+                <br />
+                @foreach (var category in ViewBag.AllCategories)
+                {
+                    @if (@category.Selected)
+                    {
+                        <input type="checkbox" name="SelectedCategories" value="@category.Value" checked /> @category.Text
+                    }
+                    else
+                    {
+                        <input type="checkbox" name="SelectedCategories" value="@category.Value" /> @category.Text
+                    }
+                    <br />
+                }
+                <br /><br />
+
                 @Html.Label("Experience Points", "ExperiencePoints")
                 <br />
                 <input type="number" class="form-control" name="ExperiencePoints" value="@Model.ExperiencePoints">

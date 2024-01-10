@@ -13,14 +13,17 @@ namespace DragonsLegacy.Controllers
         private readonly ApplicationDbContext db;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private IWebHostEnvironment _env;
 
         public ItemsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
-                                  RoleManager<IdentityRole> roleManager)
+                                  RoleManager<IdentityRole> roleManager, IWebHostEnvironment env)
         {
             db = context;
             _userManager = userManager;
             _roleManager = roleManager;
+            _env = env;
         }
+
         public IActionResult Index(string itemFilter = "All")
         {
             if (TempData.ContainsKey("message"))
@@ -96,11 +99,24 @@ namespace DragonsLegacy.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public IActionResult New(Item item)
+        public async Task<IActionResult> New(Item item, IFormFile Media)
         {
-            var sanitizer = new HtmlSanitizer();
             if (ModelState.IsValid) // Add the item to the database
             {
+                if (Media.Length > 0)
+                {
+                    var storagePath = Path.Combine(_env.WebRootPath, "items", Media.FileName);
+                    var databaseFileName = "/items/" + Media.FileName;
+
+                    using (var fileStream = new FileStream(storagePath, FileMode.Create))
+                    {
+                        await Media.CopyToAsync(fileStream);
+                    }
+
+                    item.Multimedia = databaseFileName;
+                }
+
+                var sanitizer = new HtmlSanitizer();
                 item.Description = sanitizer.Sanitize(item.Description);
                 db.Items.Add(item);
                 db.SaveChanges();

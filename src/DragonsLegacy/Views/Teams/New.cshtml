@@ -19,9 +19,7 @@
             @Html.ValidationSummary(false, "", new { @class = "text-danger" })
 
             @Html.Label("Name", "Team's Name")
-            <br />
-
-            @Html.TextBox("Name", null, new { @class = "form-control" })
+            @Html.TextBox("Name", Model.Name, new { @class = "form-control" })
             @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
             <br /><br />
 
@@ -29,7 +27,7 @@
             <br />
 
             @Html.TextArea("Description", null, new { @class = "summernote" })
-            @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
+            @Html.ValidationMessage("Description", Model.Description, new { @class = "text-danger" })
             <br /><br />
 
             <button class="btn btn-success" type="submit">Add</button>

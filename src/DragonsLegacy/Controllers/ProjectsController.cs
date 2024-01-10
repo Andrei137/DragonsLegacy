@@ -112,81 +112,8 @@ namespace DragonsLegacy.Controllers
             // Every user in the project
             ViewBag.AllUsers = GetAllUsers(project);
 
-            ViewBag.AllCategories = GetAllCategories();
             SetAccessRights(project);
             return View(project);
-        }
-
-        [HttpPost]
-        public IActionResult Show([FromForm] Task task)
-        {
-            if (TempData.ContainsKey("message"))
-            {
-                ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
-            }
-
-            var sanitizer = new HtmlSanitizer();
-            task.StartDate = DateTime.Now;
-
-            if (ModelState.IsValid)
-            {
-                TempData["message"] = "Success";
-                TempData["messageType"] = "alert-success";
-
-                task.Description = sanitizer.Sanitize(task.Description);
-                db.Tasks.Add(task);
-                db.SaveChanges();
-
-                // Add the categories to the task
-                foreach (var category in task.SelectedCategories)
-                {
-                    TaskCategory taskCategory = new TaskCategory();
-                    taskCategory.TaskId = task.Id;
-                    taskCategory.CategoryId = category; // already the id
-                    db.TaskCategories.Add(taskCategory);
-                }
-                db.SaveChanges();
-                return Redirect("/Projects/Show/" + task.ProjectId);
-            }
-            else
-            {
-                TempData["message"] = "Error";
-                TempData["messageType"] = "alert-danger";
-
-                Project project = db.Projects
-                                    .Where(p => p.Id == task.ProjectId)
-                                    .First();
-
-
-                // Select the users who are in the project
-                ViewBag.InProject = from teamProject in db.TeamProjects
-                                    join team in db.Teams
-                                    on teamProject.TeamId equals team.Id
-                                    where teamProject.ProjectId == project.Id
-                                    select team;
-
-                // Select the users who aren't in the project
-                ViewBag.NotInProject = from team in db.Teams
-                                       where !(from teamProject in db.TeamProjects
-                                               where teamProject.ProjectId == project.Id
-                                               select teamProject.TeamId)
-                                               .Contains(team.Id)
-                                       select team;
-
-                // The project's teams
-                ViewBag.Teams = from teamProject in db.TeamProjects
-                                join team in db.Teams
-                                on teamProject.TeamId equals team.Id
-                                where teamProject.ProjectId == project.Id
-                                select team;
-
-                // Every user in the project
-                ViewBag.AllUsers = GetAllUsers(project);
-
-                SetAccessRights(project);
-                return View(project);
-            }
         }
 
         [HttpPost]
@@ -448,24 +375,6 @@ namespace DragonsLegacy.Controllers
                 });
             }
 
-            return selectList;
-        }
-
-        [NonAction]
-        private IEnumerable<SelectListItem> GetAllCategories()
-        {
-            var selectList = new List<SelectListItem>();
-            var categories = from category in db.Categories
-                             select category;
-
-            foreach (var category in categories)
-            {
-                selectList.Add(new SelectListItem
-                {
-                    Value = category.Id.ToString(),
-                    Text = category.Name.ToString()
-                });
-            }
             return selectList;
         }
     }

@@ -1,4 +1,8 @@
-﻿<h2 class="text-center">Index Achievements</h2>
+﻿@{
+    string filterUrl = ViewBag.FilterUrl;
+}
+
+<h2 class="text-center">Index Achievements</h2>
 
 @if (ViewBag.Message != null)
 {
@@ -8,9 +12,17 @@
         @ViewBag.Message
     </div>
 }
+<br />
+<br />
 
-<br />
-<br />
+<form method="GET" action="/Achievements/Index?achievementFilter=@ViewBag.Filter">
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Search topics or keywords" name="search" value="@ViewBag.SearchString" />
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </div>
+</form>
+
+<h1>@filterUrl</h1>
 
 @using (Html.BeginForm("Index", "Achievements", FormMethod.Get))
 {
@@ -21,11 +33,9 @@
             new SelectListItem { Text = "Not Achieved", Value = "NotAchieved" },
             new SelectListItem { Text = "Achieved", Value = "Achieved" },
             new SelectListItem { Text = "All", Value = "All" }
-        }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
+        }, "Value", "Text", ViewBag.AchievementFilter), new { onchange = "submit()" })
     </div>
 }
-
-
 <br />
 <br />
 

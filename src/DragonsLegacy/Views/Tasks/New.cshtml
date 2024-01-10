@@ -1,0 +1,169 @@
+﻿@model DragonsLegacy.Models.Task
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+
+<br /><br />
+
+<h2 class="text-center mt-5">Add Task</h2>
+<br />
+
+<form enctype="multipart/form-data" asp-controller="Tasks" asp-action="New">
+    <div class="card-body">
+        <input type="hidden" name="ProjectId" value="@ViewBag.ProjectId" />
+
+        @Html.Label("Name", "Name")
+        <textarea class="form-control" name="Name">@Model.Name</textarea>
+        @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
+        <br /><br />
+
+        @Html.Label("Description", "Description")
+        <textarea class="summernote" name="Description">@Model.Description</textarea>
+        @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
+        <br /><br />
+
+        @Html.Label("Priority", "Priority")
+        <select name="Priority" class="form-control">
+            @if (Model.Priority == 0)
+            {
+                <option selected disabled>Select a priority</option>
+            }
+            else
+            {
+                <option disabled>Select a priority</option>
+            }
+            @if (@Model.Priority == 1)
+            {
+                <option selected value="1">Low</option>
+            }
+            else
+            {
+                <option value="1">Low</option>
+            }
+            @if (@Model.Priority == 2)
+            {
+                <option selected value="2">Medium</option>
+            }
+            else
+            {
+                <option value="2">Medium</option>
+            }
+            @if (@Model.Priority == 3)
+            {
+                <option selected value="3">High</option>
+            }
+            else
+            {
+                <option value="3">High</option>
+            }
+        </select>
+        @Html.ValidationMessage("Priority", null, new { @class = "text-danger" })
+        <br /><br />
+
+        @Html.Label("Status", "Status")
+        <select name="Status" class="form-control">
+            @if (@Model.Status == null)
+            {
+                <option selected disabled>Select a status</option>
+            }
+            else
+            {
+                <option disabled>Select a status</option>
+            }
+            @if (@Model.Status == "NotStarted")
+            {
+                <option selected value="NotStarted">Not Started</option>
+            }
+            else
+            {
+                <option value="NotStarted">Not Started</option>
+            }
+            @if (@Model.Status == "InProgress")
+            {
+                <option selected value="InProgress">In Progress</option>
+            }
+            else
+            {
+                <option value="InProgress">In Progress</option>
+            }
+        </select>
+        @Html.ValidationMessage("Status", null, new { @class = "text-danger" })
+        <br /><br />
+
+        @{
+            string year = Model.Deadline.Year.ToString();
+            string month = Model.Deadline.Month.ToString();
+            string day = Model.Deadline.Day.ToString();
+            if (month.Count() == 1)
+            {
+                month = "0" + month;
+            }
+            if (day.Count() == 1)
+            {
+                day = "0" + day;
+            }
+        }
+
+        @Html.Label("Deadline", "Deadline")
+        <input type="date" name="Deadline" class="form-control" value="@year-@month-@day"/>
+        @Html.ValidationMessage("Deadline", null, new { @class = "text-danger" })
+        <br /><br />
+
+        <input type="hidden" name="StartDate" value="@DateTime.Now" />
+
+        <i class="bi bi-card-list"></i>
+        <label>Assign User</label>
+        @Html.DropDownList("UserId", new SelectList(ViewBag.AllUsers, "Value", "Text"), null, new { @class = "form-control" })
+        <br /><br />
+
+        @Html.Label("Multimedia", "Multimedia Content")
+        <input class="form-control" type="file" name="Media" />
+        <br /><br />
+
+        @Html.Label("Categories", "Select Categories")
+        <br />
+        @foreach (SelectListItem category in ViewBag.AllCategories)
+        {
+            bool isChecked = false;
+            if (ViewBag.SelectedCategories != null)
+            {
+                foreach (int selectedCategory in ViewBag.SelectedCategories)
+                {
+                    if (selectedCategory.ToString() == category.Value)
+                    {
+                        isChecked = true;
+                        break;
+                    }
+                }   
+            }
+            if (isChecked)
+            {
+                <input type="checkbox" name="SelectedCategories" value="@category.Value" checked /> @category.Text
+            }
+            else
+            {
+                <input type="checkbox" name="SelectedCategories" value="@category.Value" /> @category.Text
+            }
+            <br />
+        }
+        <br /><br />
+
+        @Html.Label("Experience Points", "ExperiencePoints")
+        <br />
+        <input type="number" class="form-control" name="ExperiencePoints" value="@Model.ExperiencePoints" required>
+        @Html.ValidationMessage("ExperiencePoints", null, new { @class = "text-danger" })
+        <br /><br />
+
+        @Html.Label("Coins", "Coins")
+        <br />
+        <input type="number" class="form-control" name="Coins" value="@Model.Coins" required>
+        @Html.ValidationMessage("Coins", null, new { @class = "text-danger" })
+        <br /><br />
+
+        <button class="btn btn-primary" type="submit">Add task</button>
+    </div>
+</form>

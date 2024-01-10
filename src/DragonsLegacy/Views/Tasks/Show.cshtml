@@ -18,6 +18,10 @@
 
     @Html.Partial("GeneralInfo", Model)
 
+    <div class="text-center">
+        <embed src="@Model.Multimedia" style="max-height: 700px; min-height: 500px; min-width: 500px;" />
+    </div>
+
     <br />
 
     @if (ViewBag.ShowButtons)
