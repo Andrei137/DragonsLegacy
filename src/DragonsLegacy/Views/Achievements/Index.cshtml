@@ -8,7 +8,7 @@
 }
 <br /><br />
 
-<form method="GET" action="/Achievements/Index?achievementFilter=@ViewBag.Filter">
+<form method="GET" action="/Achievements/Index?achievementFilter=@ViewBag.AchievementFilter">
     <div class="input-group mb-3">
         <input type="text" class="form-control" placeholder="Search topics or keywords" name="search" value="@ViewBag.SearchString" />
         @if (ViewBag.AchievementFilter != "")
@@ -35,8 +35,7 @@
         }, "Value", "Text", ViewBag.AchievementFilter), new { onchange = "submit()" })
     </div>
 }
-<br />
-<br />
+<br /><br />
 
 @if (ViewBag.Count > 0)
 {
@@ -53,6 +52,32 @@
         </div>
         <br />
     }
+
+    <div>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <li class="page-item">
+                    <a class="page-link"
+                       href="@ViewBag.PaginationBaseUrl=1" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                @for (int i = 1; i <= ViewBag.LastPage; i++)
+                {
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="@ViewBag.PaginationBaseUrl=@i">@(i)</a>
+                    </li>
+                }
+                <li class="page-item">
+                    <a class="page-link"
+                       href="@ViewBag.PaginationBaseUrl=@(ViewBag.LastPage)" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
 }
 else
 {

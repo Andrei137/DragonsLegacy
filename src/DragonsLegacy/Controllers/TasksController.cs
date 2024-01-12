@@ -35,15 +35,24 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Message = TempData["message"];
                 ViewBag.Alert = TempData["messageType"];
             }
+
+            var tasks = from task in db.Tasks
+                        select task;
             
+            // Filter
             var taskFilter = "AllTasks";
+
+            // Search engine
+            var search = "";
+
+            int perPage = 3;
+            int totalTasks = tasks.Count();
+            var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
+            var offset = 0;
 
             // If the current user is admin, show all tasks
             if (User.IsInRole("Admin"))
             {
-                var tasks = from task in db.Tasks
-                            select task;
-
                 if (Convert.ToString(HttpContext.Request.Query["taskFilter"]) != null)
                 {
                     taskFilter = Convert.ToString(HttpContext.Request.Query["taskFilter"]).Trim();
@@ -51,19 +60,48 @@ namespace DragonsLegacy.Controllers
 
                 if (taskFilter != "AllTasks")
                 {
-                    var userId = taskFilter;
-
                     tasks = from task in db.Tasks
-                            where task.UserId == userId
+                            where task.UserId == taskFilter
                             select task;
                 }
 
-                ViewBag.Tasks           = tasks;
-                ViewBag.Count           = tasks.Count();
+                if (Convert.ToString(HttpContext.Request.Query["search"]) != null)
+                {
+                    // Remove the spaces
+                    search = Convert.ToString(HttpContext.Request.Query["search"]).Trim();
+
+                    // Search in the Name and the Description
+                    tasks = tasks
+                            .Where(t => t.Name.Contains(search) || t.Description.Contains(search));
+                }
+
+                totalTasks = tasks.Count();
+
+                if (!currentPage.Equals(0))
+                {
+                    offset = (currentPage - 1) * perPage;
+                }
+
+                ViewBag.Tasks           = tasks.Skip(offset).Take(perPage);
+                ViewBag.Count           = totalTasks;
                 ViewBag.AllUsers        = GetAllUsers();
                 ViewBag.IsAdmin         = true;
                 ViewBag.TaskFilter      = taskFilter;
                 ViewBag.TaskFilterValue = "All Tasks";
+                ViewBag.TaskFilter      = taskFilter;
+                ViewBag.SearchString    = search;
+                ViewBag.LastPage        = Math.Ceiling((float)totalTasks / (float)perPage);
+
+                if (search != "")
+                {
+                    ViewBag.PaginationBaseUrl = "/Tasks/Index/?taskFilter=" + taskFilter + 
+                                                "&search=" + search + "&page";
+                }
+                else
+                {
+                    ViewBag.PaginationBaseUrl = "/Tasks/Index/?taskFilter=" + taskFilter + "&page";
+                }
+
                 if (taskFilter != "AllTasks")
                 {
                     ViewBag.TaskFilterValue = db.Users.Find(taskFilter).UserName;
@@ -82,12 +120,9 @@ namespace DragonsLegacy.Controllers
                 var userId = _userManager.GetUserId(User);
 
                 // Select the tasks of the current user
-                var tasks = from task in db.Tasks
-                            where task.UserId == userId
-                            select task;
-
-                ViewBag.Tasks = tasks;
-                ViewBag.Count = tasks.Count();
+                tasks = from task in db.Tasks
+                        where task.UserId == userId
+                        select task;
             }
             // Select the tasks that have the status NotStarted, InProgress or Completed
             else if (taskFilter == "NotStarted" || taskFilter == "InProgress" || taskFilter == "Completed")
@@ -97,12 +132,9 @@ namespace DragonsLegacy.Controllers
                 var userId = _userManager.GetUserId(User);
 
                 // Select the tasks of the current user
-                var tasks = from task in db.Tasks
-                            where task.UserId == userId && task.Status == taskFilter
-                            select task;
-
-                ViewBag.Tasks = tasks;
-                ViewBag.Count = tasks.Count();
+                tasks = from task in db.Tasks
+                        where task.UserId == userId && task.Status == taskFilter
+                        select task;
             }
             else // Invalid task filter
             {
@@ -112,8 +144,39 @@ namespace DragonsLegacy.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.TaskFilter = taskFilter;
-            ViewBag.IsAdmin    = false;
+            if (Convert.ToString(HttpContext.Request.Query["search"]) != null)
+            {
+                // Remove the spaces
+                search = Convert.ToString(HttpContext.Request.Query["search"]).Trim();
+
+                // Search in the Name and the Description
+                tasks = tasks
+                        .Where(t => t.Name.Contains(search) || t.Description.Contains(search));
+            }
+
+            totalTasks = tasks.Count();
+
+            if (!currentPage.Equals(0))
+            {
+                offset = (currentPage - 1) * perPage;
+            }
+
+            ViewBag.Tasks        = tasks.Skip(offset).Take(perPage);
+            ViewBag.Count        = totalTasks;
+            ViewBag.TaskFilter   = taskFilter;
+            ViewBag.SearchString = search;
+            ViewBag.LastPage      = Math.Ceiling((float)totalTasks / (float)perPage);
+            ViewBag.IsAdmin      = false;
+
+            if (search != "")
+            {
+                ViewBag.PaginationBaseUrl = "/Tasks/Index/?taskFilter=" + taskFilter + 
+                                            "&search=" + search + "&page";
+            }
+            else
+            {
+                ViewBag.PaginationBaseUrl = "/Tasks/Index/?taskFilter=" + taskFilter + "&page";
+            }
 
             return View();
         }
@@ -157,7 +220,7 @@ namespace DragonsLegacy.Controllers
 
             if (task.Status == "Completed")
             {
-                // If the task is completed, remove the bonuses
+                // If the task is completed, remove the rewards
                 // So the completed status won't be exploited
                 task.ExperiencePoints = 0;
                 task.Coins            = 0;
@@ -343,7 +406,7 @@ namespace DragonsLegacy.Controllers
             {
                 if (ViewBag.IsOrganizer)
                 {
-                    // remove the old categories from the task
+                    // Remove the old categories from the task
                     var taskCategories = from taskCategory in db.TaskCategories
                                          where taskCategory.TaskId == id
                                          select taskCategory;
@@ -353,7 +416,7 @@ namespace DragonsLegacy.Controllers
                         db.TaskCategories.Remove(taskCategory);
                     }
 
-                    // add the new categories to the task
+                    // Add the new categories to the task
                     if (requestTask.SelectedCategories != null)
                     {
                         foreach (var category in requestTask.SelectedCategories)
@@ -379,27 +442,6 @@ namespace DragonsLegacy.Controllers
                     
                     db.SaveChanges();
                     
-                    return RedirectToAction("Index");
-                }
-                else if (ViewBag.IsUser)
-                {
-                    task.Status = requestTask.Status;
-
-                    if (task.Status == "Completed")
-                    {
-                        // If the task is completed, remove the bonuses
-                        // So the completed status won't be exploited
-                        task.ExperiencePoints = 0;
-                        task.Coins            = 0;
-                        task.EndDate          = DateTime.Now;
-                    }
-                    else
-                    {
-                        task.EndDate = null;
-                    }
-                    
-                    db.SaveChanges();
-
                     return RedirectToAction("Index");
                 }
                 else

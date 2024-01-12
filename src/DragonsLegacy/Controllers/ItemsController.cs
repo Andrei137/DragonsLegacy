@@ -32,47 +32,79 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
-            var itemFilter = "All";
+            var items = from item in db.Items
+                        select item;
+
+            // Filter
+            var itemFilter = "AllItems";
+
             if (Convert.ToString(HttpContext.Request.Query["itemFilter"]) != null)
             {
                 itemFilter = Convert.ToString(HttpContext.Request.Query["itemFilter"]).Trim();
             }
-            if (itemFilter == "NotOwned") // Select the items that the current user doesn't have
-            {
-                var items = from item in db.Items
-                            where !(
-                                        from userItem in db.UserItems
-                                        where userItem.UserId == _userManager.GetUserId(User)
-                                        select userItem.ItemId
-                                   ).Contains(item.Id)
-                            select item;
 
-                ViewBag.Items = items;
-                ViewBag.Count = items.Count();
-            }
-            else if (itemFilter == "Owned") // Select the items that the current user has
+            if (itemFilter == "NotOwnedItems") // Select the items that the current user doesn't have
             {
-                var items = from item in db.Items
-                            join userItem in db.UserItems on item.Id equals userItem.ItemId
-                            where userItem.UserId == _userManager.GetUserId(User)
-                            select item;
-
-                ViewBag.Items = items;
-                ViewBag.Count = items.Count();
+                items = from item in db.Items
+                        where !(
+                                    from userItem in db.UserItems
+                                    where userItem.UserId == _userManager.GetUserId(User)
+                                    select userItem.ItemId
+                               ).Contains(item.Id)
+                        select item;
             }
-            else if (itemFilter == "All") // Select all items
+            else if (itemFilter == "OwnedItems") // Select the items that the current user has
             {
-                var items = from item in db.Items
-                            select item;
-
-                ViewBag.Items = items;
-                ViewBag.Count = items.Count();
+                items = from item in db.Items
+                        join userItem in db.UserItems on item.Id equals userItem.ItemId
+                        where userItem.UserId == _userManager.GetUserId(User)
+                        select item;
             }
-            else // Invalid item filter
+            else if (itemFilter != "AllItems") // Invalid item filter
             {
-                TempData["message"] = "Invalid item filter";
+                TempData["message"]     = "Invalid item filter";
                 TempData["messageType"] = "alert-danger";
+
                 return RedirectToAction("Index");
+            }
+
+            // Search engine
+            var search = "";
+
+            if (Convert.ToString(HttpContext.Request.Query["search"]) != null)
+            {
+                // Remove the spaces
+                search = Convert.ToString(HttpContext.Request.Query["search"]).Trim();
+
+                // Search in the Name and the Description
+                items = items
+                        .Where(i => i.Name.Contains(search) || i.Description.Contains(search));
+            }
+
+            int perPage = 3;
+            int totalItems = items.Count();
+            var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
+            var offset = 0;
+
+            if (!currentPage.Equals(0))
+            {
+                offset = (currentPage - 1) * perPage;
+            }
+             
+            ViewBag.Items        = items.Skip(offset).Take(perPage);
+            ViewBag.Count        = totalItems;
+            ViewBag.ItemFilter   = itemFilter;
+            ViewBag.SearchString = search;
+            ViewBag.LastPage     = Math.Ceiling((float)totalItems / (float)perPage);
+
+            if (search != "")
+            {
+                ViewBag.PaginationBaseUrl = "/Items/Index/?itemFilter=" + itemFilter + 
+                                            "&search=" + search + "&page";
+            }
+            else
+            {
+                ViewBag.PaginationBaseUrl = "/Items/Index/?itemFilter=" + itemFilter + "&page";
             }
 
             return View();

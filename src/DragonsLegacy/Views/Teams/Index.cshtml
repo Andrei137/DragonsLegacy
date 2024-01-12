@@ -8,8 +8,23 @@
 }
 <br /><br />
 
-@using (Html.BeginForm("Index", "Teams", FormMethod.Get, new { id = "teamFilterForm" }))
+<form method="GET" action="/Teams/Index?teamFilter=@ViewBag.TeamFilter">
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Search topics or keywords" name="search" value="@ViewBag.SearchString" />
+        @if (ViewBag.TeamFilter != "")
+        {
+            <input type="hidden" name="teamFilter" value="@ViewBag.TeamFilter" />
+        }
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </div>
+</form>
+
+@using (Html.BeginForm("Index", "Teams", FormMethod.Get))
 {
+    @if (@ViewBag.SearchString != "")
+    {
+        <input type="hidden" name="search" value="@ViewBag.SearchString" />
+    }
     <div class="filter-container">
         <label for="teamFilter">Filter:</label>
         @Html.DropDownList("teamFilter", new SelectList(new[]
@@ -21,8 +36,6 @@
         }, "Value", "Text", ViewBag.TeamFilter), new { onchange = "submit()" })
     </div>
 }
-
-
 <br /><br />
 
 @if (ViewBag.Count > 0)
@@ -40,6 +53,32 @@
         </div>
         <br />
     }
+
+    <div>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <li class="page-item">
+                    <a class="page-link"
+                       href="@ViewBag.PaginationBaseUrl=1" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                @for (int i = 1; i <= ViewBag.LastPage; i++)
+                {
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="@ViewBag.PaginationBaseUrl=@i">@(i)</a>
+                    </li>
+                }
+                <li class="page-item">
+                    <a class="page-link"
+                       href="@ViewBag.PaginationBaseUrl=@(ViewBag.LastPage)" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
 }
 else
 {

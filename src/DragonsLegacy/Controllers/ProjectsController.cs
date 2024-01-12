@@ -31,7 +31,11 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Message = TempData["message"];
                 ViewBag.Alert   = TempData["messageType"];
             }
-
+   
+            var projects = from project in db.Projects
+                           select project;
+                            
+            // Filter
             var projectFilter = "AllProjects";
 
             // If the user has any organized projects, the filter is set to OrganizedProjects
@@ -57,32 +61,18 @@ namespace DragonsLegacy.Controllers
 
             if (projectFilter == "OrganizedProjects") // Select the projects for which the user is the organizer
             {
-                var projects = from project in db.Projects
-                               where project.OrganizerId == _userManager.GetUserId(User)
-                               select project;
-                    
-                ViewBag.Projects = projects;
-                ViewBag.Count    = projects.Count();
+                projects = from project in db.Projects
+                           where project.OrganizerId == _userManager.GetUserId(User)
+                           select project;
             }
             else if (projectFilter == "MyProjects") // Select the projects the user is working on
             {
-                var projects = from project in db.Projects
-                               join userProject in db.UserProjects on project.Id equals userProject.ProjectId
-                               where userProject.UserId == _userManager.GetUserId(User)
-                               select project;
-
-                ViewBag.Projects = projects;
-                ViewBag.Count    = projects.Count();
+                projects = from project in db.Projects
+                           join userProject in db.UserProjects on project.Id equals userProject.ProjectId
+                           where userProject.UserId == _userManager.GetUserId(User)
+                           select project;
             }
-            else if (projectFilter == "AllProjects") // Select all the projects
-            {
-                var projects = from project in db.Projects
-                               select project;
-
-                ViewBag.Projects = projects;
-                ViewBag.Count    = projects.Count();
-            }
-            else // Invalid project filter
+            else if (projectFilter != "AllProjects") // Invalid project filter
             {
                 TempData["message"] = "Invalid project filter";
                 TempData["messageType"] = "alert-danger";
@@ -90,7 +80,44 @@ namespace DragonsLegacy.Controllers
                 return RedirectToAction("Index");
             }
 
+            // Search engine
+            var search = "";
+        
+            if (Convert.ToString(HttpContext.Request.Query["search"]) != null)
+            {
+                // Remove the spaces
+                search = Convert.ToString(HttpContext.Request.Query["search"]).Trim();
+
+                // Search in the Name and the Description
+                projects = projects
+                           .Where(p => p.Name.Contains(search) || p.Description.Contains(search));
+            }
+
+            int perPage = 3;
+            int totalProjects = projects.Count();
+            var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
+            var offset = 0;
+
+            if (!currentPage.Equals(0))
+            {
+                offset = (currentPage - 1) * perPage;
+            }
+
+            ViewBag.Projects      = projects.Skip(offset).Take(perPage);
+            ViewBag.Count         = totalProjects;
             ViewBag.ProjectFilter = projectFilter;
+            ViewBag.SearchString  = search;
+            ViewBag.LastPage      = Math.Ceiling((float)totalProjects / (float)perPage);
+
+            if (search != "")
+            {
+                ViewBag.PaginationBaseUrl = "/Projects/Index/?projectFilter=" + projectFilter + 
+                                            "&search=" + search + "&page";
+            }
+            else
+            {
+                ViewBag.PaginationBaseUrl = "/Projects/Index/?projectFilter=" + projectFilter + "&page";
+            }
 
             return View();
         }

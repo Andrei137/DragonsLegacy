@@ -34,6 +34,7 @@ namespace DragonsLegacy.Controllers
 
             // Filter
             var achievementFilter = "All";
+
             if (Convert.ToString(HttpContext.Request.Query["achievementFilter"]) != null)
             {
                 achievementFilter = Convert.ToString(HttpContext.Request.Query["achievementFilter"]).Trim();
@@ -71,6 +72,7 @@ namespace DragonsLegacy.Controllers
 
             // Search engine
             var search = "";
+
             if (Convert.ToString(HttpContext.Request.Query["search"]) != null)
             {
                 // Remove the spaces
@@ -81,10 +83,31 @@ namespace DragonsLegacy.Controllers
                               .Where(ac => ac.Name.Contains(search) || ac.Description.Contains(search));
             }
 
-            ViewBag.Achievements      = achievements;
-            ViewBag.Count             = achievements.Count();
+            int perPage = 3;
+            int totalAchievements = achievements.Count();
+            var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
+            var offset = 0;
+
+            if (!currentPage.Equals(0))
+            {
+                offset = (currentPage - 1) * perPage;
+            }
+
+            ViewBag.Achievements      = achievements.Skip(offset).Take(perPage);
+            ViewBag.Count             = totalAchievements;
             ViewBag.AchievementFilter = achievementFilter;
             ViewBag.SearchString      = search;
+            ViewBag.LastPage          = Math.Ceiling((float)totalAchievements / (float)perPage);
+
+            if (search != "")
+            {
+                ViewBag.PaginationBaseUrl = "/Achievements/Index/?achievementFilter=" + achievementFilter + 
+                                            "&search=" + search + "&page";
+            }
+            else
+            {
+                ViewBag.PaginationBaseUrl = "/Achievements/Index/?achievementFilter=" + achievementFilter + "&page";
+            }
 
             return View();
         }

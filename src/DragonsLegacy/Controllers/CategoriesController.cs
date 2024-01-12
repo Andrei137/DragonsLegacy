@@ -28,7 +28,43 @@ namespace ArticlesApp.Controllers
             var categories = from category in db.Categories
                              orderby category.Name
                              select category;
-            ViewBag.Categories = categories;
+
+            // Search engine
+            var search = "";
+
+            if (Convert.ToString(HttpContext.Request.Query["search"]) != null)
+            {
+                // Remove the spaces
+                search = Convert.ToString(HttpContext.Request.Query["search"]).Trim();
+
+                // Search in the Name
+                categories = (IOrderedQueryable<Category>)categories
+                             .Where(c => c.Name.Contains(search));
+            }
+
+            int perPage = 3;
+            int totalCategories = categories.Count();
+            var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
+            var offset = 0;
+
+            if (!currentPage.Equals(0))
+            {
+                offset = (currentPage - 1) * perPage;
+            }
+
+            ViewBag.Categories   = categories.Skip(offset).Take(perPage);
+            ViewBag.Count        = totalCategories;
+            ViewBag.SearchString = search;
+            ViewBag.LastPage      = Math.Ceiling((float)totalCategories / (float)perPage);
+
+            if (search != "")
+            {
+                ViewBag.PaginationBaseUrl = "/Categories/Index/?search=" + search + "&page";
+            }
+            else
+            {
+                ViewBag.PaginationBaseUrl = "/Categories/Index/?page";
+            }
 
             return View();
         }

@@ -30,6 +30,10 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
+            var teams = from team in db.Teams
+                        select team;
+
+            // Filter
             var teamFilter = "AllTeams";
 
             // If the user has any managed teams, the filter is set to "ManagedTeams"
@@ -55,38 +59,24 @@ namespace DragonsLegacy.Controllers
 
             if (teamFilter == "ManagedTeams") // Select the teams for which the user is the manager
             {
-                var teams = from team in db.Teams
-                            where team.ManagerId == _userManager.GetUserId(User)
-                            select team;
-
-                ViewBag.Teams = teams;
-                ViewBag.Count = teams.Count();
+                teams = from team in db.Teams
+                        where team.ManagerId == _userManager.GetUserId(User)
+                        select team;
             }
             else if (teamFilter == "MyTeams") // Select the teams that the user is in
             {
-                var teams = from team in db.Teams
-                            join userTeam in db.UserTeams on team.Id equals userTeam.TeamId
-                            where userTeam.UserId == _userManager.GetUserId(User)
-                            select team;
-
-                ViewBag.Teams = teams;
-                ViewBag.Count = teams.Count();
-            }
-            else if (teamFilter == "AllTeams") // Select all the teams
-            {
-                var teams = from team in db.Teams
-                            select team;
-
-                ViewBag.Teams = teams;
-                ViewBag.Count = teams.Count();
+                teams = from team in db.Teams
+                        join userTeam in db.UserTeams on team.Id equals userTeam.TeamId
+                        where userTeam.UserId == _userManager.GetUserId(User)
+                        select team;
             }
             else if (teamFilter == "OldTeams") // Select the teams that the user was in
             {
                 // Select the old teams from the user's history
-                var teams = from team in db.Teams
-                            join teamHistory in db.TeamsHistory on team.Id equals teamHistory.TeamId
-                            where teamHistory.UserId == _userManager.GetUserId(User)
-                            select team;
+                teams = from team in db.Teams
+                        join teamHistory in db.TeamsHistory on team.Id equals teamHistory.TeamId
+                        where teamHistory.UserId == _userManager.GetUserId(User)
+                        select team;
                 
                 // Exclude the teams that the user is still in
                 teams = from team in teams
@@ -99,11 +89,8 @@ namespace DragonsLegacy.Controllers
 
                 // Exclude duplicate teams
                 teams = teams.Distinct();
-
-                ViewBag.Teams = teams;
-                ViewBag.Count = teams.Count();
             }
-            else // Invalid team filter
+            else if (teamFilter != "AllTeams") // Invalid team filter
             {
                 TempData["message"]     = "Invalid team filter";
                 TempData["messageType"] = "alert-danger";
@@ -111,7 +98,44 @@ namespace DragonsLegacy.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.TeamFilter = teamFilter;
+            // Search engine
+            var search = "";
+
+            if (Convert.ToString(HttpContext.Request.Query["search"]) != null)
+            {
+                // Remove the spaces
+                search = Convert.ToString(HttpContext.Request.Query["search"]).Trim();
+
+                // Search in the Name and the Description
+                teams = teams
+                        .Where(t => t.Name.Contains(search) || t.Description.Contains(search));
+            }
+
+            int perPage = 3;
+            int totalTeams = teams.Count();
+            var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
+            var offset = 0;
+
+            if (!currentPage.Equals(0))
+            {
+                offset = (currentPage - 1) * perPage;
+            }
+
+            ViewBag.Teams        = teams.Skip(offset).Take(perPage);
+            ViewBag.Count        = totalTeams;
+            ViewBag.TeamFilter   = teamFilter;
+            ViewBag.SearchString = search;
+            ViewBag.LastPage     = Math.Ceiling((float)totalTeams / (float)perPage);
+
+            if (search != "")
+            {
+                ViewBag.PaginationBaseUrl = "/Teams/Index/?teamFilter=" + teamFilter + 
+                                            "&search=" + search + "&page";
+            }
+            else
+            {
+                ViewBag.PaginationBaseUrl = "/Teams/Index/?teamFilter=" + teamFilter + "&page";
+            }
 
             return View();
         }

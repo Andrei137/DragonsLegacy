@@ -8,15 +8,30 @@
 }
 <br /><br />
 
+<form method="GET" action="/Items/Index?itemsFilter=@ViewBag.ItemsFilter">
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Search topics or keywords" name="search" value="@ViewBag.SearchString" />
+        @if (ViewBag.ItemsFilter != "")
+        {
+            <input type="hidden" name="itemsFilter" value="@ViewBag.ItemsFilter" />
+        }
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </div>
+</form>
+
 @using (Html.BeginForm("Index", "Items", FormMethod.Get))
 {
+    @if (@ViewBag.SearchString != "")
+    {
+        <input type="hidden" name="search" value="@ViewBag.SearchString" />
+    }
     <div class="filter-container">
         <label for="itemFilter">Filter:</label>
         @Html.DropDownList("itemFilter", new SelectList(new[]
         {
-            new SelectListItem { Text = "Not Owned", Value = "NotOwned" },
-            new SelectListItem { Text = "Owned", Value = "Owned" },
-            new SelectListItem { Text = "All", Value = "All" }
+            new SelectListItem { Text = "Not Owned", Value = "NotOwnedItems" },
+            new SelectListItem { Text = "Owned", Value = "OwnedItems" },
+            new SelectListItem { Text = "All", Value = "AllItems" }
         }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
     </div>
 }
@@ -40,6 +55,32 @@
         </div>
         <br />
     }
+
+    <div>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <li class="page-item">
+                    <a class="page-link"
+                       href="@ViewBag.PaginationBaseUrl=1" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                @for (int i = 1; i <= ViewBag.LastPage; i++)
+                {
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="@ViewBag.PaginationBaseUrl=@i">@(i)</a>
+                    </li>
+                }
+                <li class="page-item">
+                    <a class="page-link"
+                       href="@ViewBag.PaginationBaseUrl=@(ViewBag.LastPage)" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
 }
 else
 {

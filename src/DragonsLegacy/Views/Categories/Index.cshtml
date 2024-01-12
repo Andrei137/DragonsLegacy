@@ -8,31 +8,73 @@
 }
 <br /><br />
 
-@foreach (var category in ViewBag.Categories)
+<form method="GET" action="/Categories/Index?">
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Search topics or keywords" name="search" value="@ViewBag.SearchString" />
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </div>
+</form>
+
+@if (ViewBag.Count > 0)
 {
-    <div class="card">
+    @foreach (var category in ViewBag.Categories)
+    {
+        <div class="card">
 
-        <div class="card-body">
+            <div class="card-body">
 
-            <h3 class="card-title alert-success py-3 px-3 rounded-2 text-center">@category.Name</h3>
+                <h3 class="card-title alert-success py-3 px-3 rounded-2 text-center">@category.Name</h3>
 
-            <hr />
+                <hr />
 
-            <div class="d-flex flex-row justify-content-between">
+                <div class="d-flex flex-row justify-content-between">
 
-                <a class="btn btn-success" href="/Categories/Show/@category.Id">Show</a>
+                    <a class="btn btn-success" href="/Categories/Show/@category.Id">Show</a>
 
-                <a class="btn btn-primary" href="/Categories/Edit/@category.Id">Edit</a>
+                    <a class="btn btn-primary" href="/Categories/Edit/@category.Id">Edit</a>
 
-                <form method="post" action="/Categories/Delete/@category.Id">
+                    <form method="post" action="/Categories/Delete/@category.Id">
 
-                    <button type="submit" class="btn btn-danger">Delete</button>
+                        <button type="submit" class="btn btn-danger">Delete</button>
 
-                </form>
+                    </form>
+
+                </div>
 
             </div>
 
         </div>
+    }
 
+    <div>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <li class="page-item">
+                    <a class="page-link"
+                       href="@ViewBag.PaginationBaseUrl=1" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                @for (int i = 1; i <= ViewBag.LastPage; i++)
+                {
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="@ViewBag.PaginationBaseUrl=@i">@(i)</a>
+                    </li>
+                }
+                <li class="page-item">
+                    <a class="page-link"
+                       href="@ViewBag.PaginationBaseUrl=@(ViewBag.LastPage)" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+}
+else
+{
+    <div class="alert alert-info p-3 rounded-3 text-center">
+        No categories found.
     </div>
 }
