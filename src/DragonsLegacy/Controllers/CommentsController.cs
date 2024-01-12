@@ -18,6 +18,7 @@ namespace DragonsLegacy.Controllers
         public IActionResult Edit(int id)
         {
             Comment comment = db.Comments.Find(id);
+
             return View(comment);
         }
 
@@ -27,26 +28,28 @@ namespace DragonsLegacy.Controllers
             if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
+                ViewBag.Alert   = TempData["messageType"];
             }
 
             Comment comment = db.Comments.Find(id);
 
             if (ModelState.IsValid) // Modify the comment
             {
-                var sanitizer = new HtmlSanitizer();
-                requestComment.Content = sanitizer.Sanitize(requestComment.Content);
-                comment.Content = requestComment.Content;
-                TempData["message"] = "The comment was successfully modified";
+                var sanitizer           = new HtmlSanitizer();
+                requestComment.Content  = sanitizer.Sanitize(requestComment.Content);
+                comment.Content         = requestComment.Content;
+                TempData["message"]     = "The comment was successfully modified";
                 TempData["messageType"] = "alert-success";
+
                 db.SaveChanges();
 
                 return Redirect("/Tasks/Show/" + comment.TaskId);
             }
             else // Invalid model state
             {
-                TempData["message"] = "The comment couldn't be modified";
+                TempData["message"]     = "The comment couldn't be modified";
                 TempData["messageType"] = "alert-danger";
+
                 return View(comment);
             }
         }
@@ -56,7 +59,7 @@ namespace DragonsLegacy.Controllers
         {
             Comment comment = db.Comments.Find(id);
 
-            TempData["message"] = "The comment was successfully deleted";
+            TempData["message"]     = "The comment was successfully deleted";
             TempData["messageType"] = "alert-success";
 
             db.Comments.Remove(comment);

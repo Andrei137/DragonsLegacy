@@ -21,7 +21,7 @@ namespace ArticlesApp.Controllers
             if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
+                ViewBag.Alert   = TempData["messageType"];
             }
 
             // Select all categories in alphabetical order
@@ -29,12 +29,14 @@ namespace ArticlesApp.Controllers
                              orderby category.Name
                              select category;
             ViewBag.Categories = categories;
+
             return View();
         }
 
         public ActionResult Show(int id)
         {
             Category category = db.Categories.Find(id);
+
             return View(category);
         }
 
@@ -42,6 +44,7 @@ namespace ArticlesApp.Controllers
         public ActionResult New()
         {
             Category category = new Category();
+
             return View(category);
         }
 
@@ -51,20 +54,24 @@ namespace ArticlesApp.Controllers
             if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
+                ViewBag.Alert   = TempData["messageType"];
             }
+
             if (ModelState.IsValid) // Add the category to the database
             {
                 db.Categories.Add(category);
                 db.SaveChanges();
-                TempData["message"] = "The category was successfully added";
+
+                TempData["message"]     = "The category was successfully added";
                 TempData["messageType"] = "alert-success";
+
                 return RedirectToAction("Index");
             }
             else // Invalid model state
             {
-                TempData["message"] = "The category couldn't be added";
+                TempData["message"]     = "The category couldn't be added";
                 TempData["messageType"] = "alert-danger";
+
                 return View(category);
             }
         }
@@ -72,6 +79,7 @@ namespace ArticlesApp.Controllers
         public ActionResult Edit(int id)
         {
             Category category = db.Categories.Find(id);
+
             return View(category);
         }
 
@@ -79,17 +87,22 @@ namespace ArticlesApp.Controllers
         public ActionResult Edit(int id, Category requestCategory)
         {
             Category category = db.Categories.Find(id);
+
             if (ModelState.IsValid) // Modify the category
             {
                 category.Name = requestCategory.Name;
                 db.SaveChanges();
-                TempData["message"] = "The category was successfully modified";
+
+                TempData["message"]     = "The category was successfully modified";
                 TempData["messageType"] = "alert-success";
+
                 return RedirectToAction("Index");
             }
             else // Invalid model state
             {
                 ViewBag.Message = "Couldn't modify the category";
+                ViewBag.Alert   = "alert-danger";
+
                 return View(requestCategory);
             }
         }
@@ -100,8 +113,10 @@ namespace ArticlesApp.Controllers
             Category category = db.Categories.Find(id);
             db.Categories.Remove(category);
             db.SaveChanges();
-            TempData["message"] = "The category was deleted";
+
+            TempData["message"]     = "The category was deleted";
             TempData["messageType"] = "alert-success";
+
             return RedirectToAction("Index");
         }
     }

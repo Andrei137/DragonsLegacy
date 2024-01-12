@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DragonsLegacy.Models
@@ -32,11 +33,11 @@ namespace DragonsLegacy.Models
         public string? Multimedia { get; set; }
 
         [Required(ErrorMessage = "Experience points are required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Please enter a value bigger than 0")]
+        [Range(0, int.MaxValue, ErrorMessage = "Please enter a value bigger or equal to 0")]
         public int ExperiencePoints { get; set; } = 1;
 
         [Required(ErrorMessage = "Coins are required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Please enter a value bigger than 0")]
+        [Range(0, int.MaxValue, ErrorMessage = "Please enter a value bigger or equal to 0")]
         public int Coins { get; set; } = 1;
 
         // FK
@@ -59,5 +60,8 @@ namespace DragonsLegacy.Models
         // List of selected categories
         [NotMapped]
         public int[]? SelectedCategories { get; set; }
+
+        [NotMapped]
+        public IEnumerable<SelectListItem>? AllUsers { get; set; }
     }
 }

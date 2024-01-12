@@ -17,7 +17,7 @@ namespace DragonsLegacy.Controllers
         public AchievementsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
                                   RoleManager<IdentityRole> roleManager)
         {
-            db = context;
+            db           = context;
             _userManager = userManager;
             _roleManager = roleManager;
         }
@@ -26,7 +26,7 @@ namespace DragonsLegacy.Controllers
             if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
+                ViewBag.Alert   = TempData["messageType"];
             }
 
             var achievements = from achievement in db.Achievements
@@ -42,17 +42,17 @@ namespace DragonsLegacy.Controllers
             if (achievementFilter == "NotAchieved") // Select the achievements that the current user doesn't have
             {
                 achievements = from achievement in db.Achievements
-                               where !(from userAchievement in db.UserAchievements
-                                       where userAchievement.UserId == _userManager.GetUserId(User)
-                                       select userAchievement.AchievementId)
-                                       .Contains(achievement.Id)
+                               where !(
+                                            from userAchievement in db.UserAchievements
+                                            where userAchievement.UserId == _userManager.GetUserId(User)
+                                            select userAchievement.AchievementId
+                                      ).Contains(achievement.Id)
                                select achievement;
             }
             else if (achievementFilter == "Achieved") // Select the achievements that the current user has
             {
                 achievements = from achievement in db.Achievements
-                               join userAchievement in db.UserAchievements
-                               on achievement.Id equals userAchievement.AchievementId
+                               join userAchievement in db.UserAchievements on achievement.Id equals userAchievement.AchievementId
                                where userAchievement.UserId == _userManager.GetUserId(User)
                                select achievement;
             }
@@ -63,8 +63,9 @@ namespace DragonsLegacy.Controllers
             }
             else // Invalid achievement filter
             {
-                TempData["message"] = "Invalid achievement filter";
+                TempData["message"]     = "Invalid achievement filter";
                 TempData["messageType"] = "alert-danger";
+
                 return RedirectToAction("Index");
             }
 
@@ -80,10 +81,10 @@ namespace DragonsLegacy.Controllers
                               .Where(ac => ac.Name.Contains(search) || ac.Description.Contains(search));
             }
 
-            ViewBag.Achievements = achievements;
-            ViewBag.Count = achievements.Count();
+            ViewBag.Achievements      = achievements;
+            ViewBag.Count             = achievements.Count();
             ViewBag.AchievementFilter = achievementFilter;
-            ViewBag.SearchString = search;
+            ViewBag.SearchString      = search;
 
             return View();
         }
@@ -93,14 +94,12 @@ namespace DragonsLegacy.Controllers
             if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
+                ViewBag.Alert   = TempData["messageType"];
             }
 
-            Achievement achievement = db.Achievements
-                                        .Where(a => a.Id == id)
-                                        .First();
+            Achievement achievement = db.Achievements.Find(id);
+            ViewBag.IsAdmin         = User.IsInRole("Admin");
 
-            ViewBag.IsAdmin = User.IsInRole("Admin");
             return View(achievement);
         }
 
@@ -109,6 +108,7 @@ namespace DragonsLegacy.Controllers
         public IActionResult New()
         {
             Achievement achievement = new Achievement();
+
             return View(achievement);
         }
 
@@ -116,21 +116,23 @@ namespace DragonsLegacy.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult New(Achievement achievement)
         {
-            var sanitizer = new HtmlSanitizer();
             if (ModelState.IsValid) // Add the achievement to the database
             {
+                var sanitizer           = new HtmlSanitizer();
                 achievement.Description = sanitizer.Sanitize(achievement.Description);
+                TempData["message"]     = "The achievement was successfully added";
+                TempData["messageType"] = "alert-success";
+
                 db.Achievements.Add(achievement);
                 db.SaveChanges();
 
-                TempData["message"] = "The achievement was successfully added";
-                TempData["messageType"] = "alert-success";
                 return RedirectToAction("Index");
             }
             else // Invalid model state
             {
                 ViewBag.Message = "The achievement couldn't be added";
-                ViewBag.Alert = "alert-danger";
+                ViewBag.Alert   = "alert-danger";
+
                 return View(achievement);
             }
         }
@@ -140,6 +142,7 @@ namespace DragonsLegacy.Controllers
         public IActionResult Edit(int id)
         {
             Achievement achievement = db.Achievements.Find(id);
+
             return View(achievement);
         }
 
@@ -147,21 +150,28 @@ namespace DragonsLegacy.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Edit(int id, Achievement requestAchievement)
         {
-            var sanitizer = new HtmlSanitizer();
             Achievement achievement = db.Achievements.Find(id);
 
             if (ModelState.IsValid) // Modify the achievement
             {
+                var sanitizer                  = new HtmlSanitizer();
                 requestAchievement.Description = sanitizer.Sanitize(requestAchievement.Description);
-                achievement.Name = requestAchievement.Name;
-                achievement.Description = requestAchievement.Description;
-                achievement.ExperiencePoints = requestAchievement.ExperiencePoints;
-                achievement.Coins = requestAchievement.Coins;
+                achievement.Name               = requestAchievement.Name;
+                achievement.Description        = requestAchievement.Description;
+                achievement.ExperiencePoints   = requestAchievement.ExperiencePoints;
+                achievement.Coins              = requestAchievement.Coins;
+                TempData["message"]            = "The achievement was successfully modified";
+                TempData["messageType"]        = "alert-success";
+
                 db.SaveChanges();
+
                 return RedirectToAction("Index");
             }
             else // Invalid model state
             {
+                ViewBag.Message = "The achievement couldn't be modified";
+                ViewBag.Alert   = "alert-danger";
+
                 return View(requestAchievement);
             }
         }
@@ -173,6 +183,10 @@ namespace DragonsLegacy.Controllers
             Achievement achievement = db.Achievements.Find(id);
             db.Achievements.Remove(achievement);
             db.SaveChanges();
+
+            TempData["message"]     = "The achievement was deleted";
+            TempData["messageType"] = "alert-success";
+
             return RedirectToAction("Index");
         }
     }

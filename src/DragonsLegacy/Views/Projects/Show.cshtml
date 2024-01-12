@@ -83,7 +83,7 @@
     {
         <div style="width: 18rem;">
             <div class="card m-2 p-2">
-                <p class="card-text text-center"><a href="Show/Teams/@team.id">@team.Name</a></p>
+                <p class="card-text text-center"><a href="/Teams/Show/@team.Id">@team.Name</a></p>
             </div>
         </div>
     }
@@ -96,7 +96,7 @@
 
         @Html.Partial("GeneralInfo", task)
 
-    </div>
+    </div> 
 
     <div class="text-center">
         <a href="/Tasks/Show/@task.Id" class="btn btn-primary">Show Task</a>

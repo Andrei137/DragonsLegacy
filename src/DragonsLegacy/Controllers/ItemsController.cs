@@ -18,27 +18,33 @@ namespace DragonsLegacy.Controllers
         public ItemsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
                                   RoleManager<IdentityRole> roleManager, IWebHostEnvironment env)
         {
-            db = context;
+            db           = context;
             _userManager = userManager;
             _roleManager = roleManager;
-            _env = env;
+            _env         = env;
         }
 
-        public IActionResult Index(string itemFilter = "All")
+        public IActionResult Index()
         {
             if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
+                ViewBag.Alert   = TempData["messageType"];
             }
 
+            var itemFilter = "All";
+            if (Convert.ToString(HttpContext.Request.Query["itemFilter"]) != null)
+            {
+                itemFilter = Convert.ToString(HttpContext.Request.Query["itemFilter"]).Trim();
+            }
             if (itemFilter == "NotOwned") // Select the items that the current user doesn't have
             {
                 var items = from item in db.Items
-                            where !(from userItem in db.UserItems
-                                    where userItem.UserId == _userManager.GetUserId(User)
-                                    select userItem.ItemId)
-                                    .Contains(item.Id)
+                            where !(
+                                        from userItem in db.UserItems
+                                        where userItem.UserId == _userManager.GetUserId(User)
+                                        select userItem.ItemId
+                                   ).Contains(item.Id)
                             select item;
 
                 ViewBag.Items = items;
@@ -47,8 +53,7 @@ namespace DragonsLegacy.Controllers
             else if (itemFilter == "Owned") // Select the items that the current user has
             {
                 var items = from item in db.Items
-                            join userItem in db.UserItems
-                            on item.Id equals userItem.ItemId
+                            join userItem in db.UserItems on item.Id equals userItem.ItemId
                             where userItem.UserId == _userManager.GetUserId(User)
                             select item;
 
@@ -86,6 +91,7 @@ namespace DragonsLegacy.Controllers
                           .First();
 
             ViewBag.IsAdmin = User.IsInRole("Admin");
+
             return View(item);
         }
 
@@ -94,6 +100,7 @@ namespace DragonsLegacy.Controllers
         public IActionResult New()
         {
             Item item = new Item();
+
             return View(item);
         }
 
@@ -105,7 +112,7 @@ namespace DragonsLegacy.Controllers
             {
                 if (Media != null && Media.Length > 0)
                 {
-                    var storagePath = Path.Combine(_env.WebRootPath, "items", Media.FileName);
+                    var storagePath      = Path.Combine(_env.WebRootPath, "items", Media.FileName);
                     var databaseFileName = "/items/" + Media.FileName;
 
                     using (var fileStream = new FileStream(storagePath, FileMode.Create))
@@ -116,19 +123,21 @@ namespace DragonsLegacy.Controllers
                     item.Multimedia = databaseFileName;
                 }
 
-                var sanitizer = new HtmlSanitizer();
-                item.Description = sanitizer.Sanitize(item.Description);
+                var sanitizer           = new HtmlSanitizer();
+                item.Description        = sanitizer.Sanitize(item.Description);
+                TempData["message"]     = "The item was successfully added";
+                TempData["messageType"] = "alert-success";
+
                 db.Items.Add(item);
                 db.SaveChanges();
 
-                TempData["message"] = "The item was successfully added";
-                TempData["messageType"] = "alert-success";
                 return RedirectToAction("Index");
             }
             else // Invalid model state
             {
                 ViewBag.Message = "The item couldn't be added";
-                ViewBag.Alert = "alert-danger";
+                ViewBag.Alert   = "alert-danger";
+
                 return View(item);
             }
         }
@@ -138,6 +147,7 @@ namespace DragonsLegacy.Controllers
         public IActionResult Edit(int id)
         {
             Item item = db.Items.Find(id);
+
             return View(item);
         }
 
@@ -145,22 +155,29 @@ namespace DragonsLegacy.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Edit(int id, Item requestItem)
         {
-            var sanitizer = new HtmlSanitizer();
             Item item = db.Items.Find(id);
 
             if (ModelState.IsValid) // Modify the item
             {
+                var sanitizer           = new HtmlSanitizer();
                 requestItem.Description = sanitizer.Sanitize(requestItem.Description);
-                item.Name = requestItem.Name;
-                item.Description = requestItem.Description;
-                item.Multimedia = requestItem.Multimedia;
-                item.Price = requestItem.Price;
-                item.NumberOfItems = requestItem.NumberOfItems;
+                item.Name               = requestItem.Name;
+                item.Description        = requestItem.Description;
+                item.Multimedia         = requestItem.Multimedia;
+                item.Price              = requestItem.Price;
+                item.NumberOfItems      = requestItem.NumberOfItems;
+                TempData["message"]     = "The item was successfully modified";
+                TempData["messageType"] = "alert-success";
+
                 db.SaveChanges();
+
                 return RedirectToAction("Index");
             }
             else // Invalid model state
             {
+                ViewBag.Message = "The item couldn't be modified";
+                ViewBag.Alert   = "alert-danger";
+
                 return View(requestItem);
             }
         }
@@ -172,6 +189,10 @@ namespace DragonsLegacy.Controllers
             Item item = db.Items.Find(id);
             db.Items.Remove(item);
             db.SaveChanges();
+
+            TempData["message"]     = "The item was successfully deleted";
+            TempData["messageType"] = "alert-success";
+
             return RedirectToAction("Index");
         }
     }

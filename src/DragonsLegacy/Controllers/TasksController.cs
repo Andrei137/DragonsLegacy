@@ -22,13 +22,13 @@ namespace DragonsLegacy.Controllers
         public TasksController(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
                                   RoleManager<IdentityRole> roleManager, IWebHostEnvironment env)
         {
-            db = context;
+            db           = context;
             _userManager = userManager;
             _roleManager = roleManager;
-            _env = env;
+            _env         = env;
         }
 
-        public IActionResult Index(string taskFilter = "NotStarted")
+        public IActionResult Index()
         {
             if (TempData.ContainsKey("message"))
             {
@@ -36,8 +36,61 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert = TempData["messageType"];
             }
             
+            var taskFilter = "AllTasks";
+
+            // If the current user is admin, show all tasks
+            if (User.IsInRole("Admin"))
+            {
+                var tasks = from task in db.Tasks
+                            select task;
+
+                if (Convert.ToString(HttpContext.Request.Query["taskFilter"]) != null)
+                {
+                    taskFilter = Convert.ToString(HttpContext.Request.Query["taskFilter"]).Trim();
+                }
+
+                if (taskFilter != "AllTasks")
+                {
+                    var userId = taskFilter;
+
+                    tasks = from task in db.Tasks
+                            where task.UserId == userId
+                            select task;
+                }
+
+                ViewBag.Tasks           = tasks;
+                ViewBag.Count           = tasks.Count();
+                ViewBag.AllUsers        = GetAllUsers();
+                ViewBag.IsAdmin         = true;
+                ViewBag.TaskFilter      = taskFilter;
+                ViewBag.TaskFilterValue = "All Tasks";
+                if (taskFilter != "AllTasks")
+                {
+                    ViewBag.TaskFilterValue = db.Users.Find(taskFilter).UserName;
+                }
+
+                return View();
+            }
+
+            if (Convert.ToString(HttpContext.Request.Query["taskFilter"]) != null)
+            {
+                taskFilter = Convert.ToString(HttpContext.Request.Query["taskFilter"]).Trim();
+            }
+
+            if (taskFilter == "AllTasks")
+            {
+                var userId = _userManager.GetUserId(User);
+
+                // Select the tasks of the current user
+                var tasks = from task in db.Tasks
+                            where task.UserId == userId
+                            select task;
+
+                ViewBag.Tasks = tasks;
+                ViewBag.Count = tasks.Count();
+            }
             // Select the tasks that have the status NotStarted, InProgress or Completed
-            if (taskFilter == "NotStarted" || taskFilter == "InProgress" || taskFilter == "Completed")
+            else if (taskFilter == "NotStarted" || taskFilter == "InProgress" || taskFilter == "Completed")
             {
               
                 // Current user
@@ -53,10 +106,14 @@ namespace DragonsLegacy.Controllers
             }
             else // Invalid task filter
             {
-                TempData["message"] = "Invalid task filter";
+                TempData["message"]     = "Invalid task filter";
                 TempData["messageType"] = "alert-danger";
+
                 return RedirectToAction("Index");
             }
+
+            ViewBag.TaskFilter = taskFilter;
+            ViewBag.IsAdmin    = false;
 
             return View();
         }
@@ -66,7 +123,7 @@ namespace DragonsLegacy.Controllers
             if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
+                ViewBag.Alert   = TempData["messageType"];
             }
 
             Task task = db.Tasks
@@ -78,8 +135,46 @@ namespace DragonsLegacy.Controllers
             ViewBag.UserId = _userManager.GetUserId(User);
 
             SetAccessRights(task);
+
             return View(task);
         }
+
+        [HttpPost]
+        public IActionResult EditStatus([FromForm] Task requestTask)
+        {
+            Task task               = db.Tasks.Find(requestTask.Id);
+            var sanitizer           = new HtmlSanitizer();
+            requestTask.Description = sanitizer.Sanitize(requestTask.Description);
+            task.Name               = requestTask.Name;
+            task.Description        = requestTask.Description;
+            task.Priority           = requestTask.Priority;
+            task.Status             = requestTask.Status;
+            task.Deadline           = requestTask.Deadline;
+            task.Multimedia         = requestTask.Multimedia;
+            task.ExperiencePoints   = requestTask.ExperiencePoints;
+            task.Coins              = requestTask.Coins;
+            task.Status             = requestTask.Status;
+
+            if (task.Status == "Completed")
+            {
+                // If the task is completed, remove the bonuses
+                // So the completed status won't be exploited
+                task.ExperiencePoints = 0;
+                task.Coins            = 0;
+                task.EndDate          = DateTime.Now;
+            }
+            else
+            {
+                task.EndDate = null;
+            }
+
+            db.SaveChanges();
+
+            SetAccessRights(task);
+
+            return Redirect("/Tasks/Index/?taskFilter=" + task.Status);
+        }
+
 
         [HttpPost]
         public IActionResult Show([FromForm] Comment comment)
@@ -88,32 +183,35 @@ namespace DragonsLegacy.Controllers
 
             if (ModelState.IsValid)
             {
-                TempData["message"] = "The comment was successfully added";
+                var sanitizer           = new HtmlSanitizer();
+                comment.Content         = sanitizer.Sanitize(comment.Content);
+                TempData["message"]     = "The comment was successfully added";
                 TempData["messageType"] = "alert-success";
-                var sanitizer = new HtmlSanitizer();
-                comment.Content = sanitizer.Sanitize(comment.Content);
+                
                 db.Comments.Add(comment);
                 db.SaveChanges();
+
                 return Redirect("/Tasks/Show/" + comment.TaskId);
             }
             else
             {
-                TempData["message"] = "The comment couldn't be added";
+                TempData["message"]     = "The comment couldn't be added";
                 TempData["messageType"] = "alert-danger";
+
                 return Redirect("/Tasks/Show/" + comment.TaskId);
             }
         }
 
         public IActionResult New()
         {
-            int ProjectId = (int)TempData["ProjectId"];
-            Task task = new Task();
-            task.Deadline = task.StartDate = DateTime.Now;
+            int ProjectId         = (int)TempData["ProjectId"];
+            Task task             = new Task();
+            task.Deadline         = task.StartDate = DateTime.Now;
             task.ExperiencePoints = task.Coins = 0;
 
             if (ProjectId == null)
             {
-                TempData["message"] = "The project does not exist.";
+                TempData["message"]     = "The project does not exist.";
                 TempData["messageType"] = "alert-danger";
 
                 return Redirect("/Projects/Index");
@@ -121,18 +219,20 @@ namespace DragonsLegacy.Controllers
             else
             {
                 Project project = db.Projects.Find(ProjectId);
+
                 if (project.OrganizerId != _userManager.GetUserId(User))
                 {
-                    TempData["message"] = "You don't have the rights to add a task.";
+                    TempData["message"]     = "You don't have the rights to add a task.";
                     TempData["messageType"] = "alert-danger";
 
                     return Redirect("/Projects/Index");
                 }
                 else
                 {
-                    ViewBag.ProjectId = ProjectId;
-                    ViewBag.AllUsers = GetAllUsers(project);
+                    ViewBag.ProjectId     = ProjectId;
+                    ViewBag.AllUsers      = GetAllUsers(project);
                     ViewBag.AllCategories = GetAllCategories();
+
                     return View(task);
                 }
             }
@@ -146,10 +246,9 @@ namespace DragonsLegacy.Controllers
                 Project project = db.Projects.Find(task.ProjectId);
                 if (project.OrganizerId == _userManager.GetUserId(User))
                 {
-
                     if (Media.Length > 0)
                     {
-                        var storagePath = Path.Combine(_env.WebRootPath, "files", Media.FileName);
+                        var storagePath      = Path.Combine(_env.WebRootPath, "files", Media.FileName);
                         var databaseFileName = "/files/" + Media.FileName;
 
                         using (var fileStream = new FileStream(storagePath, FileMode.Create))
@@ -160,8 +259,9 @@ namespace DragonsLegacy.Controllers
                         task.Multimedia = databaseFileName;
                     }
 
-                    var sanitizer = new HtmlSanitizer();
+                    var sanitizer    = new HtmlSanitizer();
                     task.Description = sanitizer.Sanitize(task.Description);
+
                     db.Tasks.Add(task);
                     db.SaveChanges();
 
@@ -170,22 +270,22 @@ namespace DragonsLegacy.Controllers
                         foreach (var category in task.SelectedCategories)
                         {
                             TaskCategory taskCategory = new TaskCategory();
-                            taskCategory.TaskId = task.Id;
-                            taskCategory.CategoryId = category; // already the id
+                            taskCategory.TaskId       = task.Id;
+                            taskCategory.CategoryId   = category; // already the id
+
                             db.TaskCategories.Add(taskCategory);
                         }
                         db.SaveChanges();
                     }
 
-                    TempData["message"] = "The task was successfully added";
+                    TempData["message"]     = "The task was successfully added";
                     TempData["messageType"] = "alert-success";
 
-                    return Redirect("/Projects/Show/" + task.ProjectId);
+                    return Redirect("/Projects/Show/" + @task.ProjectId);
                 }
-
                 else
                 {
-                    TempData["message"] = "You don't have the rights to add a task.";
+                    TempData["message"]     = "You don't have the rights to add a task.";
                     TempData["messageType"] = "alert-danger";
 
                     return Redirect("/Projects/Index");
@@ -193,14 +293,13 @@ namespace DragonsLegacy.Controllers
             }
             else // Invalid model state
             {
-                Project project = db.Projects.Find(task.ProjectId);
-
-                ViewBag.Message = "The task couldn't be added";
-                ViewBag.Alert = "alert-danger";
-                ViewBag.ProjectId = task.ProjectId;
-                ViewBag.AllUsers = GetAllUsers(project);
-                ViewBag.AllCategories = GetAllCategories();
+                Project project            = db.Projects.Find(task.ProjectId);
+                ViewBag.ProjectId          = task.ProjectId;
+                ViewBag.AllUsers           = GetAllUsers(project);
+                ViewBag.AllCategories      = GetAllCategories();
                 ViewBag.SelectedCategories = task.SelectedCategories;
+                ViewBag.Message            = "The task couldn't be added";
+                ViewBag.Alert              = "alert-danger";
 
                 return View(task);
             }
@@ -213,20 +312,22 @@ namespace DragonsLegacy.Controllers
             SetAccessRights(task);
 
             // If the current user has the rights to edit
-            if (ViewBag.ShowButtons)
+            if (ViewBag.IsOrganizer || ViewBag.IsAdmin)
             {
                 IEnumerable<SelectListItem> users = GetAllUsers(task.Project);
-                users = users.Where(u => u.Value != task.UserId);
-
-                ViewBag.AllUsers = users;
-                ViewBag.AllCategories = GetAllCategories();
+                ViewBag.AllUsers                  = users.Where(u => u.Value != task.UserId);
+                ViewBag.AllCategories             = GetAllCategories();
+                ViewBag.SelectedCategories        = from taskCategory in db.TaskCategories
+                                                    where taskCategory.TaskId == id
+                                                    select taskCategory.CategoryId;
 
                 return View(task);
             }
             else
             {
-                TempData["message"] = "You don't have the rights to edit this task";
+                TempData["message"]     = "You don't have the rights to edit this task";
                 TempData["messageType"] = "alert-danger";
+
                 return RedirectToAction("Index");
             }
         }
@@ -234,8 +335,8 @@ namespace DragonsLegacy.Controllers
         [HttpPost]
         public IActionResult Edit(int id, Task requestTask)
         {
-            var sanitizer = new HtmlSanitizer();
             Task task = db.Tasks.Find(id);
+
             SetAccessRights(task);
 
             if (ModelState.IsValid) // Modify the task
@@ -258,42 +359,54 @@ namespace DragonsLegacy.Controllers
                         foreach (var category in requestTask.SelectedCategories)
                         {
                             TaskCategory taskCategory = new TaskCategory();
-                            taskCategory.TaskId = id;
-                            taskCategory.CategoryId = category; // already the id
+                            taskCategory.TaskId       = id;
+                            taskCategory.CategoryId   = category; // already the id
+
                             db.TaskCategories.Add(taskCategory);
                         }
                     }
 
+                    var sanitizer           = new HtmlSanitizer();
                     requestTask.Description = sanitizer.Sanitize(requestTask.Description);
-                    task.Name = requestTask.Name;
-                    task.Description = requestTask.Description;
-                    task.Priority = requestTask.Priority;
-                    task.Status = requestTask.Status;
-                    task.Deadline = requestTask.Deadline;
-                    task.Multimedia = requestTask.Multimedia;
-                    task.ExperiencePoints = requestTask.ExperiencePoints;
-                    task.Coins = requestTask.Coins;
+                    task.Name               = requestTask.Name;
+                    task.Description        = requestTask.Description;
+                    task.Priority           = requestTask.Priority;
+                    task.Status             = requestTask.Status;
+                    task.Deadline           = requestTask.Deadline;
+                    task.Multimedia         = requestTask.Multimedia;
+                    task.ExperiencePoints   = requestTask.ExperiencePoints;
+                    task.Coins              = requestTask.Coins;
+                    
                     db.SaveChanges();
+                    
                     return RedirectToAction("Index");
                 }
                 else if (ViewBag.IsUser)
                 {
                     task.Status = requestTask.Status;
-                    if(task.Status == "Completed")
+
+                    if (task.Status == "Completed")
                     {
-                        task.EndDate = DateTime.Now;
+                        // If the task is completed, remove the bonuses
+                        // So the completed status won't be exploited
+                        task.ExperiencePoints = 0;
+                        task.Coins            = 0;
+                        task.EndDate          = DateTime.Now;
                     }
                     else
                     {
                         task.EndDate = null;
                     }
+                    
                     db.SaveChanges();
+
                     return RedirectToAction("Index");
                 }
                 else
                 {
-                    TempData["message"] = "You don't have the rights to edit this task";
+                    TempData["message"]     = "You don't have the rights to edit this task";
                     TempData["messageType"] = "alert-danger";
+
                     return RedirectToAction("Index");
                 }
             }
@@ -326,12 +439,14 @@ namespace DragonsLegacy.Controllers
 
                 db.Tasks.Remove(task);
                 db.SaveChanges();
+
                 return RedirectToAction("Index");
             }
             else
             {
-                TempData["message"] = "You don't have the rights to remove this task";
+                TempData["message"]     = "You don't have the rights to remove this task";
                 TempData["messageType"] = "alert-danger";
+
                 return RedirectToAction("Index");
             }
         }
@@ -339,10 +454,9 @@ namespace DragonsLegacy.Controllers
         {
             ViewBag.ShowButtons = false;
             ViewBag.IsOrganizer = false;
-            ViewBag.IsUser = false;
+            ViewBag.IsUser      = false;
             ViewBag.CurrentUser = _userManager.GetUserId(User);
-
-            var projects = from project in db.Projects
+            var projects        = from project in db.Projects
                                   where project.Id == task.ProjectId
                                   select project;
             var current_project = projects.First();
@@ -373,8 +487,7 @@ namespace DragonsLegacy.Controllers
         {
             // Select all user objects from all teams working on the project
             var users = from userTeam in db.UserTeams
-                        join teamProject in db.TeamProjects
-                        on userTeam.TeamId equals teamProject.TeamId
+                        join teamProject in db.TeamProjects on userTeam.TeamId equals teamProject.TeamId
                         where teamProject.ProjectId == project.Id
                         select userTeam.User;
 
@@ -389,7 +502,7 @@ namespace DragonsLegacy.Controllers
                     selectList.Add(new SelectListItem
                     {
                         Value = user.Id.ToString(),
-                        Text = user.UserName.ToString()
+                        Text  = user.UserName.ToString()
                     });
                 }
             }
@@ -408,12 +521,38 @@ namespace DragonsLegacy.Controllers
             {
                 selectList.Add(new SelectListItem
                 {
-                    Value = category.Id.ToString(),
-                    Text = category.Name.ToString(),
-                    Selected = (from taskCategory in db.TaskCategories
-                                where taskCategory.TaskId == category.Id
-                                select taskCategory).Any()
+                    Value    = category.Id.ToString(),
+                    Text     = category.Name.ToString()
                 });
+            }
+            return selectList;
+        }
+
+        [NonAction]
+        private IEnumerable<SelectListItem> GetAllUsers()
+        {
+            var selectList = new List<SelectListItem>();
+            var users      = from user in db.Users
+                             select user;
+
+            foreach (var user in users)
+            {
+                bool isAdmin = false;
+
+                var role = _userManager.GetRolesAsync(user);
+                if (role.Result.First() == "Admin")
+                {
+                    isAdmin = true;
+                }
+
+                if (!isAdmin)
+                {
+                    selectList.Add(new SelectListItem
+                    {
+                        Value = user.Id.ToString(),
+                        Text  = user.UserName.ToString()
+                    });
+                }
             }
             return selectList;
         }

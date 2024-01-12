@@ -19,57 +19,77 @@ namespace DragonsLegacy.Controllers
         public ProjectsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
                                   RoleManager<IdentityRole> roleManager)
         {
-            db = context;
+            db           = context;
             _userManager = userManager;
             _roleManager = roleManager;
         }
 
-        public IActionResult Index(string projectFilter = "OrganizedProjects")
+        public IActionResult Index()
         {
             if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
+                ViewBag.Alert   = TempData["messageType"];
             }
-            if (projectFilter == "AllProjects") // Select all the projects
+
+            var projectFilter = "AllProjects";
+
+            // If the user has any organized projects, the filter is set to OrganizedProjects
+            if (db.Projects
+                  .Where(p => p.OrganizerId == _userManager.GetUserId(User))
+                  .Count() > 0)
+            {
+                projectFilter = "OrganizedProjects";
+            }
+            // Else if the user has any projects, the filter is set to MyProjects
+            else if (db.UserProjects
+                       .Where(up => up.UserId == _userManager.GetUserId(User))
+                       .Count() > 0)
+            {
+                projectFilter = "MyProjects";
+            }
+
+            // If the user selected a filter, use it
+            if (Convert.ToString(HttpContext.Request.Query["projectFilter"]) != null)
+            {
+                projectFilter = Convert.ToString(HttpContext.Request.Query["projectFilter"]).Trim();
+            }
+
+            if (projectFilter == "OrganizedProjects") // Select the projects for which the user is the organizer
             {
                 var projects = from project in db.Projects
-                            select project;
+                               where project.OrganizerId == _userManager.GetUserId(User)
+                               select project;
+                    
                 ViewBag.Projects = projects;
-                ViewBag.Count = projects.Count();
+                ViewBag.Count    = projects.Count();
             }
             else if (projectFilter == "MyProjects") // Select the projects the user is working on
             {
                 var projects = from project in db.Projects
-                            join userProject in db.UserProjects
-                            on project.Id equals userProject.ProjectId
-                            where userProject.UserId == _userManager.GetUserId(User)
-                            select project;
+                               join userProject in db.UserProjects on project.Id equals userProject.ProjectId
+                               where userProject.UserId == _userManager.GetUserId(User)
+                               select project;
+
                 ViewBag.Projects = projects;
-                ViewBag.Count = projects.Count();
+                ViewBag.Count    = projects.Count();
             }
-            else if (projectFilter == "OrganizedProjects") // Select the projects for which the user is the organizer
+            else if (projectFilter == "AllProjects") // Select all the projects
             {
                 var projects = from project in db.Projects
-                            where project.OrganizerId == _userManager.GetUserId(User)
-                            select project;
+                               select project;
+
                 ViewBag.Projects = projects;
-                ViewBag.Count = projects.Count();
+                ViewBag.Count    = projects.Count();
             }
             else // Invalid project filter
             {
                 TempData["message"] = "Invalid project filter";
                 TempData["messageType"] = "alert-danger";
+
                 return RedirectToAction("Index");
             }
 
-            // If the user is an admin, show all projects
-            if (User.IsInRole("Admin"))
-            {
-                var projects = from project in db.Projects
-                               select project;
-                ViewBag.Projects = projects;
-            }
             ViewBag.ProjectFilter = projectFilter;
 
             return View();
@@ -80,7 +100,7 @@ namespace DragonsLegacy.Controllers
             if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
+                ViewBag.Alert   = TempData["messageType"];
             }
 
             Project project = db.Projects
@@ -89,8 +109,7 @@ namespace DragonsLegacy.Controllers
 
             // Select the users who are in the project
             ViewBag.InProject = from teamProject in db.TeamProjects
-                                join team in db.Teams
-                                on teamProject.TeamId equals team.Id
+                                join team in db.Teams on teamProject.TeamId equals team.Id
                                 where teamProject.ProjectId == id
                                 select team;
 
@@ -105,8 +124,7 @@ namespace DragonsLegacy.Controllers
 
             // The project's teams
             ViewBag.Teams = from teamProject in db.TeamProjects
-                            join team in db.Teams
-                            on teamProject.TeamId equals team.Id
+                            join team in db.Teams on teamProject.TeamId equals team.Id
                             where teamProject.ProjectId == id
                             select team;
 
@@ -119,6 +137,7 @@ namespace DragonsLegacy.Controllers
             ViewBag.AllUsers = GetAllUsers(project);
 
             SetAccessRights(project);
+
             return View(project);
         }
 
@@ -141,8 +160,9 @@ namespace DragonsLegacy.Controllers
                           .Count() == 0)
                     {
                         UserTeam userTeam = new UserTeam();
-                        userTeam.TeamId = teamProject.TeamId;
-                        userTeam.UserId = _userManager.GetUserId(User);
+                        userTeam.TeamId   = teamProject.TeamId;
+                        userTeam.UserId   = _userManager.GetUserId(User);
+
                         db.UserTeams.Add(userTeam);
                         db.SaveChanges();
                     }
@@ -151,6 +171,7 @@ namespace DragonsLegacy.Controllers
                     var users = from userTeam in db.UserTeams
                                 where userTeam.TeamId == teamProject.TeamId
                                 select userTeam.UserId;
+
                     foreach (string userId in users)
                     {
                         // If the user isn't in the project, add him
@@ -159,27 +180,29 @@ namespace DragonsLegacy.Controllers
                               .Count() == 0)
                         {
                             UserProject userProject = new UserProject();
-                            userProject.ProjectId = teamProject.ProjectId;
-                            userProject.UserId = userId;
+                            userProject.ProjectId   = teamProject.ProjectId;
+                            userProject.UserId      = userId;
+
                             db.UserProjects.Add(userProject);
                         }
                     }
                     db.SaveChanges();
 
-                    TempData["message"] = "The team was successfully added to the project";
+                    TempData["message"]     = "The team was successfully added to the project";
                     TempData["messageType"] = "alert-success";
                 }
                 else
                 {
-                    TempData["message"] = "The team is already in the project";
+                    TempData["message"]     = "The team is already in the project";
                     TempData["messageType"] = "alert-danger";
                 }
             }
             else
             {
-                TempData["message"] = "The team couldn't be added to the project";
+                TempData["message"]     = "The team couldn't be added to the project";
                 TempData["messageType"] = "alert-danger";
             }
+
             return Redirect("/Projects/Show/" + teamProject.ProjectId);
         }
 
@@ -200,6 +223,7 @@ namespace DragonsLegacy.Controllers
                     var users = from userTeam in db.UserTeams
                                 where userTeam.TeamId == teamProject.TeamId
                                 select userTeam.UserId;
+
                     foreach (string userId in users)
                     {
                         // If the user is in another team working on the project, don't remove him
@@ -215,20 +239,21 @@ namespace DragonsLegacy.Controllers
                     }
                     db.SaveChanges();
 
-                    TempData["message"] = "The team was successfully removed from the project";
+                    TempData["message"]     = "The team was successfully removed from the project";
                     TempData["messageType"] = "alert-success";
                 }
                 else
                 {
-                    TempData["message"] = "The team is not in the project";
+                    TempData["message"]     = "The team is not in the project";
                     TempData["messageType"] = "alert-danger";
                 }
             }
             else
             {
-                TempData["message"] = "The team couldn't be removed from the project";
+                TempData["message"]     = "The team couldn't be removed from the project";
                 TempData["messageType"] = "alert-danger";
             }
+
             return Redirect("/Projects/Show/" + teamProject.ProjectId);
         }
 
@@ -236,13 +261,13 @@ namespace DragonsLegacy.Controllers
         public IActionResult New()
         {
             Project project = new Project();
+
             return View(project);
         }
 
         [HttpPost]
         public IActionResult New(Project project)
         {
-            var sanitizer = new HtmlSanitizer();
             ApplicationUser user = _userManager.GetUserAsync(User).Result;
 
             // The current user becomes the organizer
@@ -250,25 +275,30 @@ namespace DragonsLegacy.Controllers
 
             if (ModelState.IsValid) // Add the project to the database
             {
+                var sanitizer       = new HtmlSanitizer();
                 project.Description = sanitizer.Sanitize(project.Description);
+
                 db.Projects.Add(project);
                 db.SaveChanges();
 
                 // Add the manager to the team
                 UserProject userProject = new UserProject();
-                userProject.UserId = user.Id;
-                userProject.ProjectId = project.Id;
+                userProject.UserId      = user.Id;
+                userProject.ProjectId   = project.Id;
+
                 db.UserProjects.Add(userProject);
                 db.SaveChanges();
 
-                TempData["message"] = "The project was successfully added";
+                TempData["message"]     = "The project was successfully added";
                 TempData["messageType"] = "alert-success";
+
                 return RedirectToAction("Index");
             }
             else // Invalid model state
             {
                 ViewBag.Message = "The project couldn't be added";
-                ViewBag.Alert = "alert-danger";
+                ViewBag.Alert   = "alert-danger";
+
                 return View(project);
             }
         }
@@ -277,8 +307,8 @@ namespace DragonsLegacy.Controllers
         public IActionResult Edit(int id)
         {
             Project project = db.Projects
-                          .Where(p => p.Id == id)
-                          .First();
+                                .Where(p => p.Id == id)
+                                .First();
 
             if (project.OrganizerId == _userManager.GetUserId(User) ||
                 User.IsInRole("Admin"))
@@ -287,8 +317,9 @@ namespace DragonsLegacy.Controllers
             }
             else
             {
-                TempData["message"] = "You don't have the rights to edit this project";
+                TempData["message"]     = "You don't have the rights to modify this project";
                 TempData["messageType"] = "alert-danger";
+
                 return RedirectToAction("Index");
             }
         }
@@ -296,32 +327,37 @@ namespace DragonsLegacy.Controllers
         [HttpPost]
         public IActionResult Edit(int id, Project requestProject)
         {
-            var sanitizer = new HtmlSanitizer();
             Project project = db.Projects.Find(id);
+
             if (ModelState.IsValid) // Modify the project
             {
                 if (project.OrganizerId == _userManager.GetUserId(User) ||
                     User.IsInRole("Admin"))
                 {
+                    var sanitizer              = new HtmlSanitizer();
                     requestProject.Description = sanitizer.Sanitize(requestProject.Description);
-                    project.Name = requestProject.Name;
-                    project.Description = requestProject.Description;
+                    project.Name               = requestProject.Name;
+                    project.Description        = requestProject.Description;
+                    TempData["message"]        = "The project was successfully modified";
+                    TempData["messageType"]    = "alert-success";
+
                     db.SaveChanges();
-                    TempData["message"] = "The project was successfully modified";
-                    TempData["messageType"] = "alert-success";
+                    
                     return RedirectToAction("Index");
                 }
                 else
                 {
-                    TempData["message"] = "You don't have the rights to edit this project";
+                    TempData["message"]     = "You don't have the rights to modify this project";
                     TempData["messageType"] = "alert-danger";
+
                     return RedirectToAction("Index");
                 }
             }
             else // Invalid model state
             {
-                ViewBag.Message = "Couldn't modify the team";
-                ViewBag.Alert = "alert-danger";
+                ViewBag.Message = "Couldn't modify the project";
+                ViewBag.Alert   = "alert-danger";
+
                 return View(requestProject);
             }
         }
@@ -331,19 +367,23 @@ namespace DragonsLegacy.Controllers
             Project project = db.Projects
                           .Where(p => p.Id == id)
                           .First();
+
             if (project.OrganizerId == _userManager.GetUserId(User) ||
                 User.IsInRole("Admin"))
             {
                 db.Projects.Remove(project);
                 db.SaveChanges();
-                TempData["message"] = "The project was deleted";
+
+                TempData["message"]     = "The project was deleted";
                 TempData["messageType"] = "alert-success";
+
                 return RedirectToAction("Index");
             }
             else
             {
-                TempData["message"] = "You don't have the rights to delete this project";
+                TempData["message"]     = "You don't have the rights to delete this project";
                 TempData["messageType"] = "alert-danger";
+
                 return RedirectToAction("Index");
             }
         }
@@ -366,8 +406,7 @@ namespace DragonsLegacy.Controllers
         {
             // Select all user objects from all teams working on the project
             var users = from userTeam in db.UserTeams
-                        join teamProject in db.TeamProjects
-                        on userTeam.TeamId equals teamProject.TeamId
+                        join teamProject in db.TeamProjects on userTeam.TeamId equals teamProject.TeamId
                         where teamProject.ProjectId == project.Id
                         select userTeam.User;
 

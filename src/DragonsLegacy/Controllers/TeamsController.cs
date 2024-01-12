@@ -17,22 +17,66 @@ namespace DragonsLegacy.Controllers
         public TeamsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
                                   RoleManager<IdentityRole> roleManager)
         {
-            db = context;
+            db           = context;
             _userManager = userManager;
             _roleManager = roleManager;
         }
 
-        public IActionResult Index(string teamFilter = "ManagedTeams")
+        public IActionResult Index()
         {
             if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
+                ViewBag.Alert   = TempData["messageType"];
             }
-            if (teamFilter == "AllTeams") // Select all the teams
+
+            var teamFilter = "AllTeams";
+
+            // If the user has any managed teams, the filter is set to "ManagedTeams"
+            if (db.Teams
+                  .Where(team => team.ManagerId == _userManager.GetUserId(User))
+                  .Count() > 0)
+            {
+                teamFilter = "ManagedTeams";
+            }
+            // If the user has any teams, the filter is set to "MyTeams"
+            else if (db.UserTeams
+                       .Where(ut => ut.UserId == _userManager.GetUserId(User))
+                       .Count() > 0)
+            {
+                teamFilter = "MyTeams";
+            }
+
+            // If the user selected a team filter, use it
+            if (Convert.ToString(HttpContext.Request.Query["teamFilter"]) != null)
+            {
+                teamFilter = Convert.ToString(HttpContext.Request.Query["teamFilter"]).Trim();
+            }
+
+            if (teamFilter == "ManagedTeams") // Select the teams for which the user is the manager
+            {
+                var teams = from team in db.Teams
+                            where team.ManagerId == _userManager.GetUserId(User)
+                            select team;
+
+                ViewBag.Teams = teams;
+                ViewBag.Count = teams.Count();
+            }
+            else if (teamFilter == "MyTeams") // Select the teams that the user is in
+            {
+                var teams = from team in db.Teams
+                            join userTeam in db.UserTeams on team.Id equals userTeam.TeamId
+                            where userTeam.UserId == _userManager.GetUserId(User)
+                            select team;
+
+                ViewBag.Teams = teams;
+                ViewBag.Count = teams.Count();
+            }
+            else if (teamFilter == "AllTeams") // Select all the teams
             {
                 var teams = from team in db.Teams
                             select team;
+
                 ViewBag.Teams = teams;
                 ViewBag.Count = teams.Count();
             }
@@ -40,17 +84,17 @@ namespace DragonsLegacy.Controllers
             {
                 // Select the old teams from the user's history
                 var teams = from team in db.Teams
-                            join teamHistory in db.TeamsHistory
-                            on team.Id equals teamHistory.TeamId
+                            join teamHistory in db.TeamsHistory on team.Id equals teamHistory.TeamId
                             where teamHistory.UserId == _userManager.GetUserId(User)
                             select team;
                 
                 // Exclude the teams that the user is still in
                 teams = from team in teams
-                        where !(from userTeam in db.UserTeams
-                                where userTeam.UserId == _userManager.GetUserId(User)
-                                select userTeam.TeamId)
-                                .Contains(team.Id)
+                        where !(
+                                    from userTeam in db.UserTeams
+                                    where userTeam.UserId == _userManager.GetUserId(User)
+                                    select userTeam.TeamId
+                               ).Contains(team.Id)
                         select team;
 
                 // Exclude duplicate teams
@@ -59,38 +103,12 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Teams = teams;
                 ViewBag.Count = teams.Count();
             }
-            else if (teamFilter == "MyTeams") // Select the teams that the user is in
-            {
-                var teams = from team in db.Teams
-                            join userTeam in db.UserTeams
-                            on team.Id equals userTeam.TeamId
-                            where userTeam.UserId == _userManager.GetUserId(User)
-                            select team;
-                ViewBag.Teams = teams;
-                ViewBag.Count = teams.Count();
-            }
-            else if (teamFilter == "ManagedTeams") // Select the teams for which the user is the manager
-            {
-                var teams = from team in db.Teams
-                            where team.ManagerId == _userManager.GetUserId(User)
-                            select team;
-                ViewBag.Teams = teams;
-                ViewBag.Count = teams.Count();
-            }
             else // Invalid team filter
             {
-                TempData["message"] = "Invalid team filter";
+                TempData["message"]     = "Invalid team filter";
                 TempData["messageType"] = "alert-danger";
-                return RedirectToAction("Index");
-            }
 
-            // If the user is an admin, show all teams
-            if (User.IsInRole("Admin") && teamFilter != "OldTeams")
-            {
-                var teams = from team in db.Teams
-                            select team;
-                ViewBag.Teams = teams;
-                ViewBag.Count = teams.Count();
+                return RedirectToAction("Index");
             }
 
             ViewBag.TeamFilter = teamFilter;
@@ -103,12 +121,10 @@ namespace DragonsLegacy.Controllers
             if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
+                ViewBag.Alert   = TempData["messageType"];
             }
 
-            Team team = db.Teams
-                          .Where(t => t.Id == id)
-                          .First();
+            Team team = db.Teams.Find(id);
 
             // Select the users who are in the team
             ViewBag.InTeam = from userTeam in db.UserTeams
@@ -126,9 +142,7 @@ namespace DragonsLegacy.Controllers
                                 select user;
 
             // The team's manager
-            ViewBag.Manager = db.Users
-                                .Where(u => u.Id == team.ManagerId)
-                                .First();
+            ViewBag.Manager = db.Users.Find(team.ManagerId);
 
             // The team's other members
             ViewBag.Members = from userTeam in db.UserTeams
@@ -147,6 +161,7 @@ namespace DragonsLegacy.Controllers
                             select task;
 
             SetAccessRights(team);
+
             return View(team);
         }
 
@@ -162,27 +177,29 @@ namespace DragonsLegacy.Controllers
                 {
                     // Add the user to the team's history
                     TeamHistory teamHistory = new TeamHistory();
-                    teamHistory.TeamId = userTeam.TeamId;
-                    teamHistory.UserId = userTeam.UserId;
-                    teamHistory.StartDate = System.DateTime.Now;
-                    db.TeamsHistory.Add(teamHistory);
+                    teamHistory.TeamId      = userTeam.TeamId;
+                    teamHistory.UserId      = userTeam.UserId;
+                    teamHistory.StartDate   = System.DateTime.Now;
 
+                    db.TeamsHistory.Add(teamHistory);
                     db.UserTeams.Add(userTeam);
                     db.SaveChanges();
-                    TempData["message"] = "The user was successfully added to the team";
+
+                    TempData["message"]     = "The user was successfully added to the team";
                     TempData["messageType"] = "alert-success";
                 }
                 else
                 {
-                    TempData["message"] = "The user is already in the team";
+                    TempData["message"]     = "The user is already in the team";
                     TempData["messageType"] = "alert-danger";
                 }
             }
             else
             {
-                TempData["message"] = "The user couldn't be added to the team";
+                TempData["message"]     = "The user couldn't be added to the team";
                 TempData["messageType"] = "alert-danger";
             }
+
             return Redirect("/Teams/Show/" + userTeam.TeamId);
         }
 
@@ -202,25 +219,26 @@ namespace DragonsLegacy.Controllers
                                                             th.UserId == userTeam.UserId)
                                                .OrderByDescending(th => th.StartDate)
                                                .First();
-                    teamHistory.EndDate = System.DateTime.Now;
+                    teamHistory.EndDate     = System.DateTime.Now;
 
                     db.UserTeams.Remove(userTeam);
                     db.SaveChanges();
 
-                    TempData["message"] = "The user was successfully removed from the team";
+                    TempData["message"]     = "The user was successfully removed from the team";
                     TempData["messageType"] = "alert-success";
                 }
                 else
                 {
-                    TempData["message"] = "The user is not in the team";
+                    TempData["message"]     = "The user is not in the team";
                     TempData["messageType"] = "alert-danger";
                 }
             }
             else
             {
-                TempData["message"] = "The user couldn't be removed from the team";
+                TempData["message"]     = "The user couldn't be removed from the team";
                 TempData["messageType"] = "alert-danger";
             }
+
             return Redirect("/Teams/Show/" + userTeam.TeamId);
         }
 
@@ -228,6 +246,7 @@ namespace DragonsLegacy.Controllers
         public IActionResult New()
         {
             Team team = new Team();
+
             return View(team);
         }
 
@@ -236,39 +255,42 @@ namespace DragonsLegacy.Controllers
         {
             ApplicationUser user = _userManager.GetUserAsync(User).Result;
 
-            var sanitizer = new HtmlSanitizer();
             // The current user becomes the manager
             team.ManagerId = user.Id;
 
             if (ModelState.IsValid) // Add the team to the database
             {
+                var sanitizer    = new HtmlSanitizer();
                 team.Description = sanitizer.Sanitize(team.Description);
+
                 db.Teams.Add(team);
                 db.SaveChanges();
 
                 // Add the manager to the team
                 UserTeam userTeam = new UserTeam();
-                userTeam.UserId = user.Id;
-                userTeam.TeamId = team.Id;
-                db.UserTeams.Add(userTeam);
+                userTeam.UserId   = user.Id;
+                userTeam.TeamId   = team.Id;
 
                 // Add the manager to the team's history
                 TeamHistory teamHistory = new TeamHistory();
-                teamHistory.TeamId = userTeam.TeamId;
-                teamHistory.UserId = userTeam.UserId;
-                teamHistory.StartDate = System.DateTime.Now;
-                db.TeamsHistory.Add(teamHistory);
+                teamHistory.TeamId      = userTeam.TeamId;
+                teamHistory.UserId      = userTeam.UserId;
+                teamHistory.StartDate   = System.DateTime.Now;
 
+                db.UserTeams.Add(userTeam);
+                db.TeamsHistory.Add(teamHistory);
                 db.SaveChanges();
 
-                TempData["message"] = "The team was successfully added";
+                TempData["message"]     = "The team was successfully added";
                 TempData["messageType"] = "alert-success";
+
                 return RedirectToAction("Index");
             }
             else // Invalid model state
             {
                 ViewBag.Message = "The team couldn't be added";
-                ViewBag.Alert = "alert-danger";
+                ViewBag.Alert   = "alert-danger";
+
                 return View(team);
             }
         }
@@ -276,9 +298,7 @@ namespace DragonsLegacy.Controllers
         // GET
         public IActionResult Edit(int id)
         {
-            Team team = db.Teams
-                          .Where(t => t.Id == id)
-                          .First();
+            Team team = db.Teams.Find(id);
 
             if (team.ManagerId == _userManager.GetUserId(User) || 
                 User.IsInRole("Admin"))
@@ -287,8 +307,9 @@ namespace DragonsLegacy.Controllers
             }
             else
             {
-                TempData["message"] = "You don't have the rights to edit this team";
+                TempData["message"]     = "You don't have the rights to modify this team";
                 TempData["messageType"] = "alert-danger";
+
                 return RedirectToAction("Index");
             }
         }
@@ -296,47 +317,52 @@ namespace DragonsLegacy.Controllers
         [HttpPost]
         public IActionResult Edit(int id, Team requestTeam)
         {
-            var sanitizer = new HtmlSanitizer();
             Team team = db.Teams.Find(id);
+
             if (ModelState.IsValid) // Modify the team
             {
                 if (team.ManagerId == _userManager.GetUserId(User) ||
                     User.IsInRole("Admin"))
                 {
+                    var sanitizer           = new HtmlSanitizer();
                     requestTeam.Description = sanitizer.Sanitize(requestTeam.Description);
-                    team.Name = requestTeam.Name;
-                    team.Description = requestTeam.Description;
-                    db.SaveChanges();
-                    TempData["message"] = "The team was successfully modified";
+                    team.Name               = requestTeam.Name;
+                    team.Description        = requestTeam.Description;
+                    TempData["message"]     = "The team was successfully modified";
                     TempData["messageType"] = "alert-success";
+
+                    db.SaveChanges();
+                    
                     return RedirectToAction("Index");
                 }
                 else
                 {
-                    TempData["message"] = "You don't have the rights to edit this team";
+                    TempData["message"]     = "You don't have the rights to modify this team";
                     TempData["messageType"] = "alert-danger";
+
                     return RedirectToAction("Index");
                 }
             }
             else // Invalid model state
             {
                 ViewBag.Message = "Couldn't modify the team";
-                ViewBag.Alert = "alert-danger";
+                ViewBag.Alert   = "alert-danger";
+
                 return View(requestTeam);
             }
         }
 
         public IActionResult Delete(int id)
         {
-            Team team = db.Teams
-                          .Where(t => t.Id == id)
-                          .First();
+            Team team = db.Teams.Find(id);
+
             if (team.ManagerId == _userManager.GetUserId(User) ||
                 User.IsInRole("Admin"))
             {
                 // Remove the team's history
                 var teamHistory = db.TeamsHistory
                                   .Where(th => th.TeamId == id);
+
                 foreach (var history in teamHistory)
                 {
                     db.TeamsHistory.Remove(history);
@@ -344,14 +370,17 @@ namespace DragonsLegacy.Controllers
 
                 db.Teams.Remove(team);
                 db.SaveChanges();
-                TempData["message"] = "The team was deleted";
+
+                TempData["message"]     = "The team was deleted";
                 TempData["messageType"] = "alert-success";
+
                 return RedirectToAction("Index");
             }
             else
             {
-                TempData["message"] = "You don't have the rights to delete this team";
+                TempData["message"]     = "You don't have the rights to delete this team";
                 TempData["messageType"] = "alert-danger";
+
                 return RedirectToAction("Index");
             }
         }

@@ -64,35 +64,7 @@
         @Html.ValidationMessage("Priority", null, new { @class = "text-danger" })
         <br /><br />
 
-        @Html.Label("Status", "Status")
-        <select name="Status" class="form-control">
-            @if (@Model.Status == null)
-            {
-                <option selected disabled>Select a status</option>
-            }
-            else
-            {
-                <option disabled>Select a status</option>
-            }
-            @if (@Model.Status == "NotStarted")
-            {
-                <option selected value="NotStarted">Not Started</option>
-            }
-            else
-            {
-                <option value="NotStarted">Not Started</option>
-            }
-            @if (@Model.Status == "InProgress")
-            {
-                <option selected value="InProgress">In Progress</option>
-            }
-            else
-            {
-                <option value="InProgress">In Progress</option>
-            }
-        </select>
-        @Html.ValidationMessage("Status", null, new { @class = "text-danger" })
-        <br /><br />
+        <input type="hidden" name="Status" value="NotStarted" />
 
         @{
             string year = Model.Deadline.Year.ToString();
@@ -122,6 +94,7 @@
 
         @Html.Label("Multimedia", "Multimedia Content")
         <input class="form-control" type="file" name="Media" />
+        @Html.ValidationMessage("Media", "Media is required", new { @class = "text-danger" })
         <br /><br />
 
         @Html.Label("Categories", "Select Categories")

@@ -23,10 +23,8 @@ namespace ArticlesApp.Controllers
             RoleManager<IdentityRole> roleManager
             )
         {
-            db = context;
-
+            db           = context;
             _userManager = userManager;
-
             _roleManager = roleManager;
         }
         public IActionResult Index()
@@ -44,14 +42,12 @@ namespace ArticlesApp.Controllers
         {
             ApplicationUser user = db.Users.Find(id);
 
-            var roleNames = await _userManager.GetRolesAsync(user);
-
+            var roleNames       = await _userManager.GetRolesAsync(user);
             var currentUserRole = _roleManager.Roles
                                               .Where(r => roleNames.Contains(r.Name))
                                               .Select(r => r.Id)
                                               .First();
-
-            ViewBag.UserRole = db.Roles.Find(currentUserRole).Name;
+            ViewBag.UserRole    = db.Roles.Find(currentUserRole).Name;
 
             return View(user);
         }
@@ -59,17 +55,13 @@ namespace ArticlesApp.Controllers
         public async Task<ActionResult> Edit(string id)
         {
             ApplicationUser user = db.Users.Find(id);
-
-            user.AllRoles = GetAllRoles();
-
-            var roleNames = await _userManager.GetRolesAsync(user);
-
-            var currentUserRole = _roleManager.Roles
-                                              .Where(r => roleNames.Contains(r.Name))
-                                              .Select(r => r.Id)
-                                              .First();
-
-            ViewBag.UserRole = currentUserRole;
+            user.AllRoles        = GetAllRoles();
+            var roleNames        = await _userManager.GetRolesAsync(user);
+            var currentUserRole  = _roleManager.Roles
+                                               .Where(r => roleNames.Contains(r.Name))
+                                               .Select(r => r.Id)
+                                               .First();
+            ViewBag.UserRole     = currentUserRole;
 
             return View(user);
         }
@@ -78,18 +70,16 @@ namespace ArticlesApp.Controllers
         public async Task<ActionResult> Edit(string id, ApplicationUser newData, [FromForm] string newRole)
         {
             ApplicationUser user = db.Users.Find(id);
-
-            user.AllRoles = GetAllRoles();
+            user.AllRoles        = GetAllRoles();
 
             if (ModelState.IsValid)
             {
-                user.UserName = newData.UserName;
-                user.Email = newData.Email;
-                user.FirstName = newData.FirstName;
-                user.LastName = newData.LastName;
+                user.UserName    = newData.UserName;
+                user.Email       = newData.Email;
+                user.FirstName   = newData.FirstName;
+                user.LastName    = newData.LastName;
                 user.PhoneNumber = newData.PhoneNumber;
-                
-                var roles = db.Roles.ToList();
+                var roles        = db.Roles.ToList();
 
                 foreach (var role in roles)
                 {
@@ -102,9 +92,9 @@ namespace ArticlesApp.Controllers
                 db.SaveChanges();
                 
             }
-        return RedirectToAction("Index");
-        }
 
+            return RedirectToAction("Index");
+        }
 
         [HttpPost]
         public IActionResult Delete(string id)

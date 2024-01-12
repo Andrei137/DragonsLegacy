@@ -8,17 +8,69 @@
 }
 <br /><br />
 
-@using (Html.BeginForm("Index", "Tasks", FormMethod.Get))
+@if (!ViewBag.IsAdmin)
 {
-    <div class="filter-container">
-        <label for="taskFilter">Filter:</label>
-        @Html.DropDownList("taskFilter", new SelectList(new[]
-        {
-            new SelectListItem { Text = "Not Started", Value = "NotStarted" },
-            new SelectListItem { Text = "In Progress", Value = "InProgress" },
-            new SelectListItem { Text = "Completed", Value = "Completed" }
-        }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
-    </div>
+    @using (Html.BeginForm("Index", "Tasks", FormMethod.Get))
+    {
+        <div class="filter-container">
+            <label for="taskFilter">Filter:</label>
+            @Html.DropDownList("taskFilter", new SelectList(new[]
+            {
+                new SelectListItem { Text = "All Tasks", Value = "All Tasks" },
+                new SelectListItem { Text = "Not Started", Value = "NotStarted" },
+                new SelectListItem { Text = "In Progress", Value = "InProgress" },
+                new SelectListItem { Text = "Completed", Value = "Completed" }
+            }, "Value", "Text", ViewBag.TaskFilter), new { onchange = "submit()" })
+        </div>
+    }
+}
+else
+{
+    @using (Html.BeginForm("Index", "Tasks", FormMethod.Get))
+    {
+        <div class="form-group">
+            <label for="TaskFilter">Select a user:</label>
+            <select id="TaskFilter" name="TaskFilter" class="form-control" onchange="this.form.submit()">
+                @if (ViewBag.TaskFilter == "AllTasks")
+                {
+                    <option value="AllTasks" selected>All Tasks</option>
+                }
+                else
+                {
+                    <option value="AllTasks">All Tasks</option>
+                    <option value="@ViewBag.TaskFilter" selected>@ViewBag.TaskFilterValue</option> 
+                }
+                @foreach (var user in ViewBag.AllUsers)
+                {
+                    @if (ViewBag.TaskFilter != "AllTasks")
+                    {
+                        @if (ViewBag.TaskFilter != user.Value)
+                        {
+                            <option value="@user.Value">@user.Text</option>
+                        }
+                    }
+                    else
+                    {
+                        <option value="@user.Value">@user.Text</option>
+                    }
+                }
+            </select>
+        </div>
+    }
+
+    
+    @* @using (Html.BeginForm("Index", "Tasks", FormMethod.Get))
+    {
+        <div class="filter-container">
+            <label for="taskFilter">Filter:</label>
+            @foreach (var user in ViewBag.AllUsers)
+            {
+                <input type="checkbox" name="TaskFilter" value="@user.Value" />
+                <label for="TaskFilter">@user.Text</label>
+            }
+            <input type="submit" value="Filter" />
+        </div>
+    } *@
 }
 
 @if (ViewBag.Count > 0)
