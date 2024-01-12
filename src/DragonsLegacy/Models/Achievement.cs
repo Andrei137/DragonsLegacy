@@ -18,8 +18,11 @@ namespace DragonsLegacy.Models
 
         // The user receives experience points for doing an achievement
         [Required(ErrorMessage = "Experience points are required")]
-        public int ExperiencePoints { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "Please enter a value bigger than 0")]
+        public int ExperiencePoints { get; set; } = 1;
 
+        [Required(ErrorMessage = "Coins are required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please enter a value bigger than 0")]
         // The user could receive coins for doing an achievement
         public int Coins { get; set; } = 0;
 

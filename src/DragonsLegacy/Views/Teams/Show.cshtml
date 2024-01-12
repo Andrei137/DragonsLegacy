@@ -4,13 +4,10 @@
 
 @if (ViewBag.Message != null)
 {
-    <br />
-    <br />
     <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
         @ViewBag.Message
     </div>
 }
-
 <br /><br />
 
 <div class="card">
@@ -82,20 +79,6 @@
 
 <br /><b3 />
 
-@foreach (DragonsLegacy.Models.Task task in ViewBag.Tasks)
-{
-    <div class="card">
-
-        @Html.Partial("GeneralInfo", task)
-
-    </div>
-
-    <div class="text-center">
-        <a href="/Tasks/Show/@task.Id" class="btn btn-primary">Show Task</a>
-    </div>
-    <br />
-}
-
 <h3 class="text-center">Members</h3>
 <div class="d-flex flex-row justify-content-center">
     <div style="width: 18rem;">
@@ -115,3 +98,19 @@
         </div>
     }
 </div>
+
+<br /><b3 />
+
+@foreach (DragonsLegacy.Models.Task task in ViewBag.Tasks)
+{
+    <div class="card">
+
+        @Html.Partial("GeneralInfo", task)
+
+    </div>
+
+    <div class="text-center">
+        <a href="/Tasks/Show/@task.Id" class="btn btn-primary">Show Task</a>
+    </div>
+    <br />
+}

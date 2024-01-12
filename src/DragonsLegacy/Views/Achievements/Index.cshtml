@@ -1,31 +1,30 @@
-﻿@{
-    string filterUrl = ViewBag.FilterUrl;
-}
-
-<h2 class="text-center">Index Achievements</h2>
+﻿<h2 class="text-center">Index Achievements</h2>
 
 @if (ViewBag.Message != null)
 {
-    <br />
-    <br />
     <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
         @ViewBag.Message
     </div>
 }
-<br />
-<br />
+<br /><br />
 
 <form method="GET" action="/Achievements/Index?achievementFilter=@ViewBag.Filter">
     <div class="input-group mb-3">
         <input type="text" class="form-control" placeholder="Search topics or keywords" name="search" value="@ViewBag.SearchString" />
+        @if (ViewBag.AchievementFilter != "")
+        {
+            <input type="hidden" name="achievementFilter" value="@ViewBag.AchievementFilter" />
+        }
         <button class="btn btn-outline-success" type="submit">Search</button>
     </div>
 </form>
 
-<h1>@filterUrl</h1>
-
 @using (Html.BeginForm("Index", "Achievements", FormMethod.Get))
 {
+    @if (@ViewBag.SearchString != "")
+    {
+        <input type="hidden" name="search" value="@ViewBag.SearchString" />
+    }
     <div class="filter-container">
         <label for="achievementFilter">Filter:</label>
         @Html.DropDownList("achievementFilter", new SelectList(new[]

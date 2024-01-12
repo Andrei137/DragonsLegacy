@@ -46,7 +46,7 @@ namespace ArticlesApp.Controllers
         }
 
         [HttpPost]
-        public ActionResult New(Category cat)
+        public ActionResult New(Category category)
         {
             if (TempData.ContainsKey("message"))
             {
@@ -55,7 +55,7 @@ namespace ArticlesApp.Controllers
             }
             if (ModelState.IsValid) // Add the category to the database
             {
-                db.Categories.Add(cat);
+                db.Categories.Add(category);
                 db.SaveChanges();
                 TempData["message"] = "The category was successfully added";
                 TempData["messageType"] = "alert-success";
@@ -65,7 +65,7 @@ namespace ArticlesApp.Controllers
             {
                 TempData["message"] = "The category couldn't be added";
                 TempData["messageType"] = "alert-danger";
-                return View(cat);
+                return View(category);
             }
         }
 
@@ -97,12 +97,11 @@ namespace ArticlesApp.Controllers
         [HttpPost]
         public ActionResult Delete(int id)
         {
-            Category category = db.Categories
-                                  .Where(c => c.Id == id)
-                                  .First();
+            Category category = db.Categories.Find(id);
             db.Categories.Remove(category);
             db.SaveChanges();
             TempData["message"] = "The category was deleted";
+            TempData["messageType"] = "alert-success";
             return RedirectToAction("Index");
         }
     }

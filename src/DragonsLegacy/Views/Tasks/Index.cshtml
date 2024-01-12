@@ -2,15 +2,11 @@
 
 @if (ViewBag.Message != null)
 {
-    <br />
-    <br />
     <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
         @ViewBag.Message
     </div>
 }
-
-<br />
-<br />
+<br /><br />
 
 @using (Html.BeginForm("Index", "Tasks", FormMethod.Get))
 {

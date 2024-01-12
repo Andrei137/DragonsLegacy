@@ -24,20 +24,29 @@ namespace DragonsLegacy.Controllers
         [HttpPost]
         public IActionResult Edit(int id, Comment requestComment)
         {
-            ModelState.Clear();
-            var sanitizer = new HtmlSanitizer();
+            if (TempData.ContainsKey("message"))
+            {
+                ViewBag.Message = TempData["message"];
+                ViewBag.Alert = TempData["messageType"];
+            }
+
             Comment comment = db.Comments.Find(id);
 
             if (ModelState.IsValid) // Modify the comment
             {
-                requestComment.Content = sanitizer.Sanitize(comment.Content);
+                var sanitizer = new HtmlSanitizer();
+                requestComment.Content = sanitizer.Sanitize(requestComment.Content);
                 comment.Content = requestComment.Content;
+                TempData["message"] = "The comment was successfully modified";
+                TempData["messageType"] = "alert-success";
                 db.SaveChanges();
 
                 return Redirect("/Tasks/Show/" + comment.TaskId);
             }
             else // Invalid model state
             {
+                TempData["message"] = "The comment couldn't be modified";
+                TempData["messageType"] = "alert-danger";
                 return View(comment);
             }
         }
@@ -46,6 +55,9 @@ namespace DragonsLegacy.Controllers
         public IActionResult Delete(int id)
         {
             Comment comment = db.Comments.Find(id);
+
+            TempData["message"] = "The comment was successfully deleted";
+            TempData["messageType"] = "alert-success";
 
             db.Comments.Remove(comment);
             db.SaveChanges();

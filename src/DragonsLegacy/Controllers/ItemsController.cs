@@ -99,11 +99,11 @@ namespace DragonsLegacy.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> New(Item item, IFormFile Media)
+        public async Task<IActionResult> New(Item item, IFormFile? Media)
         {
             if (ModelState.IsValid) // Add the item to the database
             {
-                if (Media.Length > 0)
+                if (Media != null && Media.Length > 0)
                 {
                     var storagePath = Path.Combine(_env.WebRootPath, "items", Media.FileName);
                     var databaseFileName = "/items/" + Media.FileName;

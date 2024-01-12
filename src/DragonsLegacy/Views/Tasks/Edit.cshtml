@@ -6,9 +6,7 @@
         @ViewBag.Message
     </div>
 }
-
-<br />
-<br />
+<br /><br />
 
 <h2 class="text-center mt-5">Edit Task</h2>
 <br />
@@ -23,19 +21,16 @@
                 @Html.ValidationSummary(false, "", new { @class = "text-danger" })
 
                 @Html.Label("Name", "Name")
-                <br />
-                <textarea class="form-control" name="Name">@Model.Name</textarea>
+                @Html.TextBox("Name", Model.Name, new { @class = "form-control" })
                 @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
                 <br /><br />
 
                 @Html.Label("Description", "Description")
-                <br />
-                <textarea class="summernote" name="Description">@Model.Description</textarea>
+                @Html.TextArea("Description", Model.Description, new { @class = "summernote" })
                 @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
                 <br /><br />
 
                 @Html.Label("Priority", "Priority")
-                <br />
                 <select name="Priority" class="form-control">
                     @if (@Model.Priority == 1)
                     {

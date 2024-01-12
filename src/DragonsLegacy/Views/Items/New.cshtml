@@ -6,46 +6,41 @@
         @ViewBag.Message
     </div>
 }
-
-<br />
-<br />
+<br /><br />
 
 <h2 class="text-center mt-5">Add Item</h2>
 <br />
-@using (Html.BeginForm(actionName: "New", controllerName: "Items"))
-{
+
+<form enctype="multipart/form-data" asp-controller="Items" asp-action="New">
     <div class="row">
         <div class="col-6 offset-3">
-
             @Html.ValidationSummary(false, "", new { @class = "text-danger" })
 
-            @Html.Label("Name", "Item's Name")
-            <br />
-            @Html.TextBox("Name", null, new { @class = "form-control" })
+            @Html.Label("Name", "Name")
+            @Html.TextBox("Name", Model.Name, new { @class = "form-control" })
             @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
             <br /><br />
 
-            @Html.Label("Description", "Item's Description")
-            <br />
-            @Html.TextArea("Description", null, new { @class = "summernote" })
-            @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
+            @Html.Label("Description", "Description")
+            @Html.TextArea("Description", Model.Description, new { @class = "summernote" })
+            <br /><br />
+
+            @Html.Label("Multimedia", "Multimedia Content")
+            <input type="file" class="form-control" name="Media" />
             <br /><br />
 
             @Html.Label("Price", "Price")
-            <br />
-            <input type="number" class="form-control" name="Price">
+            <input type="number" class="form-control" name="Price" value="@Model.Price" />
             @Html.ValidationMessage("Price", null, new { @class = "text-danger" })
             <br /><br />
 
-            @Html.Label("NumberOfItems", "Number of Items")
-            <br />
-            <input type="number" class="form-control" name="NumberOfItems">
+            @Html.Label("NumberOfItems", "Number of available items")
+            <input type="number" class="form-control" name="NumberOfItems" value="@Model.NumberOfItems" />
             @Html.ValidationMessage("NumberOfItems", null, new { @class = "text-danger" })
             <br /><br />
 
             <button class="btn btn-success" type="submit">Add</button>
 
         </div>
-
     </div>
-}
+</form>

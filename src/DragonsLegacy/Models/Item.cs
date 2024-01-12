@@ -20,11 +20,13 @@ namespace DragonsLegacy.Models
 
         // The price of the item
         [Required(ErrorMessage = "Price is required")]
-        public int Price { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "Please enter a value bigger than 1")]
+        public int Price { get; set; } = 1;
 
         // The stock
         [Required(ErrorMessage = "Number of items is required")]
-        public int NumberOfItems { get; set; }
+        [Range(0, int.MaxValue, ErrorMessage = "Please enter a value bigger or equal to 0")]
+        public int NumberOfItems { get; set; } = 0;
 
         // The users who bought the item
         public virtual ICollection<UserItem>? UserItems { get; set; }

@@ -1,13 +1,33 @@
 ﻿@model DragonsLegacy.Models.Comment
 
-@using (Html.BeginForm(actionName: "Edit", controllerName: "Comments", routeValues: new { id = Model.Id }))
+@if (ViewBag.Message != null)
 {
-    @Html.Label("Content", "Comment")
-    <br />
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+<br /><br />
 
-    @Html.TextArea("Content", null, new { @class = "summernote" })
-    @Html.ValidationMessage("Content", null, new { @class = "text-danger" })
-    <br />
+<h2 class="text-center mt-5">Edit Achievement</h2>
+<br />
 
-    <button class="btn  btn-primary" type="submit">Edit</button>
+@using (Html.BeginForm(actionName: "Edit", controllerName: "Comments"))
+{
+    <div class="row">
+        <div class="col-6 offset-3">
+
+            @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+            <input type="hidden" name="UserId" value="@Model.UserId" />
+
+            @Html.Label("Content", "Comment")
+            @Html.TextArea("Content", Model.Content, new { @class = "summernote" })
+            @Html.ValidationMessage("Content", null, new { @class = "text-danger" })
+            <br /><br />
+
+            <button class="btn btn-success" type="submit">Edit</button>
+
+        </div>
+
+    </div>
 }

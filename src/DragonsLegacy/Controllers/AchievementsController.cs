@@ -21,7 +21,7 @@ namespace DragonsLegacy.Controllers
             _userManager = userManager;
             _roleManager = roleManager;
         }
-        public IActionResult Index(string achievementFilter = "All")
+        public IActionResult Index()
         {
             if (TempData.ContainsKey("message"))
             {
@@ -31,6 +31,13 @@ namespace DragonsLegacy.Controllers
 
             var achievements = from achievement in db.Achievements
                                select achievement;
+
+            // Filter
+            var achievementFilter = "All";
+            if (Convert.ToString(HttpContext.Request.Query["achievementFilter"]) != null)
+            {
+                achievementFilter = Convert.ToString(HttpContext.Request.Query["achievementFilter"]).Trim();
+            }
 
             if (achievementFilter == "NotAchieved") // Select the achievements that the current user doesn't have
             {
@@ -65,28 +72,18 @@ namespace DragonsLegacy.Controllers
             var search = "";
             if (Convert.ToString(HttpContext.Request.Query["search"]) != null)
             {
-                // remove the spaces
+                // Remove the spaces
                 search = Convert.ToString(HttpContext.Request.Query["search"]).Trim();
 
-                // search in the Name and the Description
+                // Search in the Name and the Description
                 achievements = achievements
                               .Where(ac => ac.Name.Contains(search) || ac.Description.Contains(search));
             }
 
             ViewBag.Achievements = achievements;
             ViewBag.Count = achievements.Count();
+            ViewBag.AchievementFilter = achievementFilter;
             ViewBag.SearchString = search;
-            ViewBag.Filter = achievementFilter;
-
-            if (search != "")
-            {
-                ViewBag.FilterUrl = "search=" + search + "&achievementFilter";
-            }
-
-            else
-            {
-                ViewBag.FilterUrl = "achievementFilter";
-            }
 
             return View();
         }

@@ -112,17 +112,17 @@ namespace DragonsLegacy.Controllers
 
             // Select the users who are in the team
             ViewBag.InTeam = from userTeam in db.UserTeams
-                             join user in db.Users
-                             on userTeam.UserId equals user.Id
+                             join user in db.Users on userTeam.UserId equals user.Id
                              where userTeam.TeamId == id
                              select user;
 
             // Select the users who aren't in the team
             ViewBag.NotInTeam = from user in db.Users
-                                where !(from userTeam in db.UserTeams
-                                        where userTeam.TeamId == id
-                                        select userTeam.UserId)
-                                        .Contains(user.Id)
+                                where !(
+                                            from userTeam in db.UserTeams
+                                            where userTeam.TeamId == id
+                                            select userTeam.UserId
+                                       ).Contains(user.Id)
                                 select user;
 
             // The team's manager
@@ -132,19 +132,18 @@ namespace DragonsLegacy.Controllers
 
             // The team's other members
             ViewBag.Members = from userTeam in db.UserTeams
-                              join user in db.Users
-                              on userTeam.UserId equals user.Id
+                              join user in db.Users on userTeam.UserId equals user.Id
                               where userTeam.TeamId == id && userTeam.UserId != team.ManagerId
                               select user;
 
             // Select all the tasks that are assigned to a member in the team
             ViewBag.Tasks = from task in db.Tasks
-                            where (from userTeam in db.UserTeams
-                                   join user in db.Users
-                                   on userTeam.UserId equals user.Id
-                                   where userTeam.TeamId == id
-                                   select user.Id)
-                                   .Contains(task.UserId)
+                            where (
+                                       from userTeam in db.UserTeams
+                                       join user in db.Users on userTeam.UserId equals user.Id
+                                       where userTeam.TeamId == id
+                                       select user.Id
+                                   ).Contains(task.UserId)
                             select task;
 
             SetAccessRights(team);

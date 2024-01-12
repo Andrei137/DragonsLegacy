@@ -6,12 +6,11 @@
         @ViewBag.Message
     </div>
 }
-
-<br />
-<br />
+<br /><br />
 
 <h2 class="text-center mt-5">Add Achievement</h2>
 <br />
+
 @using (Html.BeginForm(actionName: "New", controllerName: "Achievements"))
 {
     <div class="row">
@@ -19,27 +18,23 @@
 
             @Html.ValidationSummary(false, "", new { @class = "text-danger" })
 
-            @Html.Label("Name", "Achievement's Name")
-            <br />
-            @Html.TextBox("Name", null, new { @class = "form-control" })
+            @Html.Label("Name", "Name")
+            @Html.TextBox("Name", Model.Name, new { @class = "form-control" })
             @Html.ValidationMessage("Name", null, new { @class = "text-danger" })
             <br /><br />
 
-            @Html.Label("Description", "Achievement's Description")
-            <br />
-            @Html.TextArea("Description", null, new { @class = "summernote" })
+            @Html.Label("Description", "Description")
+            @Html.TextArea("Description", Model.Description, new { @class = "summernote" })
             @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
             <br /><br />
 
-            @Html.Label("Experience Points", "ExperiencePoints")
-            <br />
-            <input type="number" class="form-control" name="ExperiencePoints">
+            @Html.Label("ExperiencePoints", "Experience Points")
+            <input type="number" class="form-control" name="ExperiencePoints" value="@Model.ExperiencePoints" required />
             @Html.ValidationMessage("ExperiencePoints", null, new { @class = "text-danger" })
             <br /><br />
 
             @Html.Label("Coins", "Coins")
-            <br />
-            <input type="number" class="form-control" name="Coins">
+            <input type="number" class="form-control" name="Coins" value="@Model.Coins" required />
             @Html.ValidationMessage("Coins", null, new { @class = "text-danger" })
             <br /><br />
 

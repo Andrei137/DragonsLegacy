@@ -1,5 +1,13 @@
 ﻿@model DragonsLegacy.Models.ApplicationUser
 
+@if (ViewBag.Message != null)
+{
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+<br /><br />
+
 <div class="card mt-3" style="height:100%; width: 100%;">
 
     <div class="card-body d-flex justify-content-between flex-column">

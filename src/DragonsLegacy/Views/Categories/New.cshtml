@@ -4,11 +4,11 @@
 {
     <h2 class="alert-danger p-3 rounded-3 text-center mb-5">@ViewBag.Message</h2>
 }
-
-<h2>Adaugare Categorie</h2>
+<br /><br />
 
 <h2 class="text-center mt-5">Adaugare categorie</h2>
 <br />
+
 @using (Html.BeginForm(actionName: "New", controllerName: "Categories"))
 {
     <div class="row">
@@ -16,9 +16,7 @@
             @Html.ValidationSummary(false, "", new { @class = "text-danger" })
 
             @Html.Label("Name", "Name")
-            <br />
-
-            @Html.TextBox("Name", null, new { @class = "form-control" })
+            @Html.TextBox("Name", Model.Name, new { @class = "form-control" })
             @Html.ValidationMessageFor(m => m.Name, null, new { @class = "text-danger" })
             <br /><br />
 

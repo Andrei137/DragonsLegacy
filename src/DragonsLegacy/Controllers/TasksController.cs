@@ -35,9 +35,10 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Message = TempData["message"];
                 ViewBag.Alert = TempData["messageType"];
             }
-
+            
+            // Select the tasks that have the status NotStarted, InProgress or Completed
             if (taskFilter == "NotStarted" || taskFilter == "InProgress" || taskFilter == "Completed")
-            { // Select the tasks that have the status NotStarted, InProgress or Completed
+            {
               
                 // Current user
                 var userId = _userManager.GetUserId(User);
@@ -74,6 +75,8 @@ namespace DragonsLegacy.Controllers
                           .Where(t => t.Id == id)
                           .First();
 
+            ViewBag.UserId = _userManager.GetUserId(User);
+
             SetAccessRights(task);
             return View(task);
         }
@@ -81,16 +84,13 @@ namespace DragonsLegacy.Controllers
         [HttpPost]
         public IActionResult Show([FromForm] Comment comment)
         {
-            ModelState.Clear();
-            var sanitizer = new HtmlSanitizer();
-
             comment.Date = DateTime.Now;
-            comment.UserId = _userManager.GetUserId(User);
 
             if (ModelState.IsValid)
             {
-                TempData["message"] = "Success";
+                TempData["message"] = "The comment was successfully added";
                 TempData["messageType"] = "alert-success";
+                var sanitizer = new HtmlSanitizer();
                 comment.Content = sanitizer.Sanitize(comment.Content);
                 db.Comments.Add(comment);
                 db.SaveChanges();
@@ -98,9 +98,9 @@ namespace DragonsLegacy.Controllers
             }
             else
             {
-                TempData["message"] = "Error";
+                TempData["message"] = "The comment couldn't be added";
                 TempData["messageType"] = "alert-danger";
-                return RedirectToAction("Index");
+                return Redirect("/Tasks/Show/" + comment.TaskId);
             }
         }
 
@@ -177,7 +177,7 @@ namespace DragonsLegacy.Controllers
                         db.SaveChanges();
                     }
 
-                    TempData["message"] = "Task " + task.Name + " was added";
+                    TempData["message"] = "The task was successfully added";
                     TempData["messageType"] = "alert-success";
 
                     return Redirect("/Projects/Show/" + task.ProjectId);
@@ -193,22 +193,6 @@ namespace DragonsLegacy.Controllers
             }
             else // Invalid model state
             {
-                Console.WriteLine("\n");
-                Console.WriteLine("\n");
-                Console.WriteLine(task.Id);
-                Console.WriteLine(task.Name);
-                Console.WriteLine(task.Description);
-                Console.WriteLine(task.Priority);
-                Console.WriteLine(task.Status);
-                Console.WriteLine(task.Deadline);
-                Console.WriteLine(task.Multimedia);
-                Console.WriteLine(task.ExperiencePoints);
-                Console.WriteLine(task.Coins);
-                Console.WriteLine(task.ProjectId);
-                Console.WriteLine(task.UserId);
-                Console.WriteLine("\n");
-                Console.WriteLine("\n");
-
                 Project project = db.Projects.Find(task.ProjectId);
 
                 ViewBag.Message = "The task couldn't be added";

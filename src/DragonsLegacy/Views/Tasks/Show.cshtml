@@ -4,22 +4,18 @@
 
 @if (ViewBag.Message != null)
 {
-    <br />
-    <br />
     <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
         @ViewBag.Message
     </div>
 }
-
-<br />
-<br />
+<br /><br />
 
 <div class="card">
 
     @Html.Partial("GeneralInfo", Model)
 
     <div class="text-center">
-        <embed src="@Model.Multimedia" style="max-height: 700px; min-height: 500px; min-width: 500px;" />
+        <embed src="@Model.Multimedia" style="max-height: 150px; min-height: 50px; min-width: 50px;" />
     </div>
 
     <br />
@@ -129,9 +125,9 @@
                     <div class="card-body">
 
                         <input type="hidden" name="TaskId" value="@Model.Id" />
+                        <input type="hidden" name="UserId" value="@Model.UserId" />
 
-                        <label>Content</label>
-                        <br />
+                        @Html.Label("Content", "Comment")
                         @Html.TextArea("Content", null, new { @class = "summernote" })
                         @Html.ValidationMessage("Content", null, new { @class = "text-danger" })
                         <br /><br />

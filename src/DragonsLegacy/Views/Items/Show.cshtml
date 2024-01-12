@@ -4,20 +4,21 @@
 
 @if (ViewBag.Message != null)
 {
-    <br />
-    <br />
     <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
         @ViewBag.Message
     </div>
 }
-
 <br /><br />
 
 <div class="card">
 
     @Html.Partial("GeneralInfo", Model)
 
-    <br />
+    <div class="text-center">
+        <embed src="@Model.Multimedia" style="max-height: 150px; min-height: 50px; min-width: 50px;" />
+    </div>
+
+    <br /><br />
 
     <div class="d-flex flex-row justify-content-around">
 

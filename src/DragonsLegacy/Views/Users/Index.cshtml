@@ -1,4 +1,12 @@
-﻿<div class="row">
+﻿@if (ViewBag.Message != null)
+{
+    <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
+        @ViewBag.Message
+    </div>
+}
+<br /><br />
+
+<div class="row">
 @foreach (var user in ViewBag.UsersList)
 {
     <div class="col-4 mb-4">
