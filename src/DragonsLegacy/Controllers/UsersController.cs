@@ -27,6 +27,8 @@ namespace ArticlesApp.Controllers
             _userManager = userManager;
             _roleManager = roleManager;
         }
+
+        [Authorize(Roles = "Admin")]
         public IActionResult Index()
         {
             var users = from user in db.Users
@@ -104,8 +106,8 @@ namespace ArticlesApp.Controllers
                          .Where(u => u.Id == id)
                          .First();
 
-            // Delete user comments
-            if (user.Comments.Count > 0)
+            // Delete the user's comments
+            if (user.Comments != null)
             {
                 foreach (var comment in user.Comments)
                 {
@@ -113,13 +115,80 @@ namespace ArticlesApp.Controllers
                 }
             }
 
+            // Delete the user's tasks
+            if (user.Tasks != null)
+            {
+                foreach (var task in user.Tasks)
+                {
+                    db.Tasks.Remove(task);
+                }
+            }
+
+            // Delete the user's achievements
+            if (user.UserAchievements != null)
+            {
+                foreach (var achievement in user.UserAchievements)
+                {
+                    db.UserAchievements.Remove(achievement);
+                }
+            }
+
+            // Delete the user's items
+            if (user.UserItems != null)
+            {
+                foreach (var item in user.UserItems)
+                {
+                    db.UserItems.Remove(item);
+                }
+            }
+
+            replaceOrganizerAndManager(id);
+
             db.ApplicationUsers.Remove(user);
 
             db.SaveChanges();
 
             return RedirectToAction("Index");
         }
-                          
+
+        private void replaceOrganizerAndManager(string id)
+        {
+            var teams = db.Teams
+                          .Where(t => t.ManagerId == id)
+                          .ToList();
+
+            // The new manager will be the one with the most experience points from that team
+            foreach (var team in teams)
+            {
+                var usersFromTeam = db.Users
+                                      .Include("UserTeams")
+                                      .Where(u => u.UserTeams.Any(ut => ut.TeamId == team.Id) && u.Id != team.ManagerId)
+                                      .ToList();
+
+                var newManager = usersFromTeam.OrderByDescending(u => u.ExperiencePoints)
+                                              .First();
+
+                team.ManagerId = newManager.Id;
+            }
+
+            var projects = db.Projects
+                            .Where(p => p.OrganizerId == id)
+                            .ToList();
+
+            // The new organizer will be the one with the most experience points from that project
+            foreach (var project in projects)
+            {
+                var usersFromProject = db.Users
+                                         .Include("UserProjects")
+                                         .Where(u => u.UserProjects.Any(up => up.ProjectId == project.Id) && u.Id != project.OrganizerId)
+                                         .ToList();
+
+                var newOrganizer = usersFromProject.OrderByDescending(u => u.ExperiencePoints)
+                                                   .First();
+
+                project.OrganizerId = newOrganizer.Id;
+            }
+        }
 
         [NonAction]
         private IEnumerable<SelectListItem> GetAllRoles()

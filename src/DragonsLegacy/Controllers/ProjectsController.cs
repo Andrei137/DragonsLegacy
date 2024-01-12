@@ -161,7 +161,7 @@ namespace DragonsLegacy.Controllers
                             select task;
 
             // Every user in the project
-            ViewBag.AllUsers = GetAllUsers(project);
+            ViewBag.AllUsers = GetAllUsersFromProject(project);
 
             SetAccessRights(project);
 
@@ -340,6 +340,8 @@ namespace DragonsLegacy.Controllers
             if (project.OrganizerId == _userManager.GetUserId(User) ||
                 User.IsInRole("Admin"))
             {
+                ViewBag.InProject = GetAllUsersFromProject(project);
+
                 return View(project);
             }
             else
@@ -365,6 +367,7 @@ namespace DragonsLegacy.Controllers
                     requestProject.Description = sanitizer.Sanitize(requestProject.Description);
                     project.Name               = requestProject.Name;
                     project.Description        = requestProject.Description;
+                    project.OrganizerId        = requestProject.OrganizerId;
                     TempData["message"]        = "The project was successfully modified";
                     TempData["messageType"]    = "alert-success";
 
@@ -429,7 +432,7 @@ namespace DragonsLegacy.Controllers
         }
 
         [NonAction]
-        private IEnumerable<SelectListItem> GetAllUsers(Project project)
+        private IEnumerable<SelectListItem> GetAllUsersFromProject(Project project)
         {
             // Select all user objects from all teams working on the project
             var users = from userTeam in db.UserTeams

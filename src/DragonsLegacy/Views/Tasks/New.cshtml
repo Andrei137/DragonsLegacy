@@ -6,7 +6,6 @@
         @ViewBag.Message
     </div>
 }
-
 <br /><br />
 
 <h2 class="text-center mt-5">Add Task</h2>
@@ -14,6 +13,8 @@
 
 <form enctype="multipart/form-data" asp-controller="Tasks" asp-action="New">
     <div class="card-body">
+        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
         <input type="hidden" name="ProjectId" value="@ViewBag.ProjectId" />
 
         @Html.Label("Name", "Name")
@@ -94,7 +95,6 @@
 
         @Html.Label("Multimedia", "Multimedia Content")
         <input class="form-control" type="file" name="Media" />
-        @Html.ValidationMessage("Media", "Media is required", new { @class = "text-danger" })
         <br /><br />
 
         @Html.Label("Categories", "Select Categories")
@@ -125,7 +125,7 @@
         }
         <br /><br />
 
-        @Html.Label("Experience Points", "ExperiencePoints")
+        @Html.Label("ExperiencePoints", "Experience Points")
         <br />
         <input type="number" class="form-control" name="ExperiencePoints" value="@Model.ExperiencePoints" required>
         @Html.ValidationMessage("ExperiencePoints", null, new { @class = "text-danger" })

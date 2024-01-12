@@ -4,6 +4,7 @@ using Ganss.Xss;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace DragonsLegacy.Controllers
 {
@@ -151,17 +152,24 @@ namespace DragonsLegacy.Controllers
             Team team = db.Teams.Find(id);
 
             // Select the users who are in the team
-            ViewBag.InTeam = from userTeam in db.UserTeams
-                             join user in db.Users on userTeam.UserId equals user.Id
-                             where userTeam.TeamId == id
-                             select user;
+            ViewBag.InTeam = GetAllUsersFromTeam(team);
 
             // Select the users who aren't in the team
-            ViewBag.NotInTeam = from user in db.Users
+            var notInTeam = from user in db.Users
+                            where !(
+                                        from userTeam in db.UserTeams
+                                        where userTeam.TeamId == id
+                                        select userTeam.UserId
+                                   ).Contains(user.Id)
+                            select user;
+
+            // Remove the users with the role admin;
+            ViewBag.NotInTeam = from user in notInTeam
                                 where !(
-                                            from userTeam in db.UserTeams
-                                            where userTeam.TeamId == id
-                                            select userTeam.UserId
+                                            from userRole in db.UserRoles
+                                            join role in db.Roles on userRole.RoleId equals role.Id
+                                            where role.Name == "Admin"
+                                            select userRole.UserId
                                        ).Contains(user.Id)
                                 select user;
 
@@ -327,6 +335,8 @@ namespace DragonsLegacy.Controllers
             if (team.ManagerId == _userManager.GetUserId(User) || 
                 User.IsInRole("Admin"))
             {
+                 ViewBag.InTeam = GetAllUsersFromTeam(team);
+
                 return View(team);
             }
             else
@@ -352,6 +362,7 @@ namespace DragonsLegacy.Controllers
                     requestTeam.Description = sanitizer.Sanitize(requestTeam.Description);
                     team.Name               = requestTeam.Name;
                     team.Description        = requestTeam.Description;
+                    team.ManagerId          = requestTeam.ManagerId;
                     TempData["message"]     = "The team was successfully modified";
                     TempData["messageType"] = "alert-success";
 
@@ -407,6 +418,28 @@ namespace DragonsLegacy.Controllers
 
                 return RedirectToAction("Index");
             }
+        }
+
+        [NonAction]
+        private IEnumerable<SelectListItem> GetAllUsersFromTeam(Team team)
+        {
+            var selectList = new List<SelectListItem>();
+
+            foreach (var user in db.Users.ToList())
+            {
+                if (db.UserTeams
+                      .Where(ut => ut.UserId == user.Id && ut.TeamId == team.Id)
+                      .Count() != 0)
+                {
+                    selectList.Add(new SelectListItem
+                    {
+                        Value = user.Id.ToString(),
+                        Text  = user.UserName
+                    });
+                }
+            }
+
+            return selectList;
         }
 
         private void SetAccessRights(Team team)

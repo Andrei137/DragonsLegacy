@@ -34,11 +34,11 @@ namespace DragonsLegacy.Models
 
         [Required(ErrorMessage = "Experience points are required")]
         [Range(0, int.MaxValue, ErrorMessage = "Please enter a value bigger or equal to 0")]
-        public int ExperiencePoints { get; set; } = 1;
+        public int ExperiencePoints { get; set; } = 20;
 
         [Required(ErrorMessage = "Coins are required")]
         [Range(0, int.MaxValue, ErrorMessage = "Please enter a value bigger or equal to 0")]
-        public int Coins { get; set; } = 1;
+        public int Coins { get; set; } = 50;
 
         // FK
         public string UserId { get; set; }

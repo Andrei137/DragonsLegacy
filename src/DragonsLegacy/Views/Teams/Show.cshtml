@@ -59,9 +59,9 @@
                             <option selected disabled>Remove this user to the team</option>
                             @foreach (var user in ViewBag.InTeam)
                             {
-                                @if (user.Id != Model.ManagerId)
+                                @if (user.Value != Model.ManagerId)
                                 {
-                                    <option value="@user.Id">@user.UserName</option>
+                                    <option value="@user.Value">@user.Text</option>
                                 }
                             }
                         </select>

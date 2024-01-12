@@ -220,10 +220,16 @@ namespace DragonsLegacy.Controllers
 
             if (task.Status == "Completed")
             {
-                // If the task is completed, remove the rewards
-                // So the completed status won't be exploited
+                // If the task is completed, give the rewards to the user
+                var user = db.Users.Find(task.UserId);
+                user.ExperiencePoints += task.ExperiencePoints;
+                user.Coins            += task.Coins;
+
+                // The rewards are given only once
                 task.ExperiencePoints = 0;
                 task.Coins            = 0;
+
+                // Task completed now
                 task.EndDate          = DateTime.Now;
             }
             else
