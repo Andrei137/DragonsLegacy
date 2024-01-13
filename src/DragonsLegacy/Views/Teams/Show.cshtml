@@ -20,7 +20,7 @@
 {
     <div class="d-flex flex-row justify-content-around">
 
-        <a class="btn btn-primary" href="/Teams/Edit/@Model.Id">Edit</a>
+        <a class="btn btn-success" href="/Teams/Edit/@Model.Id">Edit</a>
 
         <form method="post" action="/Teams/Delete/@Model.Id">
 
@@ -110,19 +110,27 @@
         <br /><br />
     }
 
-    @foreach (DragonsLegacy.Models.Task task in ViewBag.Tasks)
-    {
-        <div class="card">
+    <div class="row">
+        @{int counter = 0;}
+        @foreach (DragonsLegacy.Models.Task task in ViewBag.Tasks)
+        {
+            <div class="col-md-4">
+                <div class="card">
+                    @Html.Partial("TaskInfo", task)
+                </div>
 
-            @Html.Partial("TaskInfo", task)
+                <div class="d-flex flex-row justify-content-around p-3">
+                    <div> <a href="/Tasks/Show/@task.Id" class="btn btn-dark">Show task</a> </div>
+                </div>
+            </div>
 
-        </div>
-
-        <div class="text-center">
-            <a href="/Tasks/Show/@task.Id" class="btn btn-dark">Show Task</a>
-        </div>
-        <br />
-    }
+            counter++;
+            if (counter % 3 == 0 && counter < ViewBag.Count)
+            {
+                @:</div><div class="row">
+            }
+        }
+    </div>
 
     @if (ViewBag.LastPage > 1)
     {
