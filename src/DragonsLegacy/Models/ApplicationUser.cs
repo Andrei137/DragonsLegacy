@@ -39,6 +39,12 @@ namespace DragonsLegacy.Models
         // The user's projects
         public virtual ICollection<UserProject>? UserProjects { get; set; }
 
+        // The teams for which the user is manager
+        public virtual ICollection<Team>? ManagedTeams { get; set; }
+
+        // The projects for which the user is origanizer
+        public virtual ICollection<Project>? OrganizedProjects { get; set; }
+
         [NotMapped]
         public IEnumerable<SelectListItem>? AllRoles { get; set; }
     }

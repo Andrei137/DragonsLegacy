@@ -81,16 +81,17 @@ namespace DragonsLegacy.Controllers
                         .Where(i => i.Name.Contains(search) || i.Description.Contains(search));
             }
 
-            int perPage = 3;
-            int totalItems = items.Count();
+            int perPage     = 3;
+            int totalItems  = items.Count();
             var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
-            var offset = 0;
+            var offset      = 0;
 
             if (!currentPage.Equals(0))
             {
                 offset = (currentPage - 1) * perPage;
             }
              
+            ViewBag.IsAdmin      = User.IsInRole("Admin");
             ViewBag.Items        = items.Skip(offset).Take(perPage);
             ViewBag.Count        = totalItems;
             ViewBag.ItemFilter   = itemFilter;

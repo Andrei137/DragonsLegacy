@@ -21,6 +21,9 @@ namespace DragonsLegacy.Models
         // The organizer
         public virtual ApplicationUser? Organizer { get; set; }
 
+        // The project's tasks
+        public virtual ICollection<Task>? Tasks { get; set; }
+
         // The project's teams
         public virtual ICollection<TeamProject>? TeamProjects { get; set; }
 

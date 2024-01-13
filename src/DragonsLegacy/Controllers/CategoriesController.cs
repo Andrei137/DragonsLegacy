@@ -42,10 +42,10 @@ namespace ArticlesApp.Controllers
                              .Where(c => c.Name.Contains(search));
             }
 
-            int perPage = 3;
+            int perPage         = 3;
             int totalCategories = categories.Count();
-            var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
-            var offset = 0;
+            var currentPage     = Convert.ToInt32(HttpContext.Request.Query["page"]);
+            var offset          = 0;
 
             if (!currentPage.Equals(0))
             {

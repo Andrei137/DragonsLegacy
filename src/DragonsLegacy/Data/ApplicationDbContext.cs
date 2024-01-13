@@ -21,7 +21,6 @@ namespace DragonsLegacy.Data
         public DbSet<Task> Tasks { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<TeamHistory> TeamsHistory { get; set; }
-
         public DbSet<TaskCategory> TaskCategories { get; set; }
         public DbSet<TeamProject> TeamProjects { get; set; }
         public DbSet<UserAchievement> UserAchievements { get; set; }
@@ -128,6 +127,20 @@ namespace DragonsLegacy.Data
                         .HasForeignKey(c => c.UserId)
                         .OnDelete(DeleteBehavior.ClientSetNull);
 
+            modelBuilder.Entity<Project>()
+                        .HasOne(p => p.Organizer)
+                        .WithMany(o => o.OrganizedProjects)
+                        .HasForeignKey(p => p.OrganizerId);
+
+            modelBuilder.Entity<Team>()
+                        .HasOne(t => t.Manager)
+                        .WithMany(m => m.ManagedTeams)
+                        .HasForeignKey(t => t.ManagerId);
+
+            modelBuilder.Entity<Task>()
+                        .HasOne(t => t.Project)
+                        .WithMany(p => p.Tasks)
+                        .HasForeignKey(t => t.ProjectId);
         }
     }
 }

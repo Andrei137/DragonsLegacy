@@ -31,6 +31,11 @@
         </div>
 
         <br />
+    }
+
+    @if (ViewBag.ShowButtons)
+    {
+        TempData["ProjectId"] = Model.Id;
 
         <div class="d-flex flex-row justify-content-around">
             <form method="post" asp-controller="Projects" asp-action="AddTeam">
@@ -51,12 +56,16 @@
                 </div>
             </form>
 
+            <div>
+                <a href="/Tasks/New" class="btn btn-primary">Add Task</a>
+            </div>
+
             <form method="post" asp-controller="Projects" asp-action="RemoveTeam">
                 <input type="hidden" name="ProjectId" value="@Model.Id" />
                 <div class="d-flex flex-row justify-content-center p-3">
                     <div>
                         <select name="TeamId" class="form-control">
-                            <option selected disabled>Remove this user to the team</option>
+                            <option selected disabled>Remove this team from the project</option>
                             @foreach (var team in ViewBag.InProject)
                             {
                                 <option value="@team.Id">@team.Name</option>
@@ -73,82 +82,106 @@
 
 </div>
 
+<div class="d-flex flex-row justify-content-center">
+    <div style="width: 18rem;">
+        <div class="card m-2 p-2">
+            <h5 class="card-title  text-center">Organizer</h5>
+            <p class="card-text  text-center">@Model.Organizer.UserName</p>
+        </div>
+    </div>
+</div>
 <br /><b3 />
 
-<div class="d-flex flex-row justify-content-center">
-    <h3>Teams</h3>
-</div>
-<div class="d-flex flex-row justify-content-center">
-    @foreach (var team in ViewBag.Teams)
-    {
-        <div style="width: 18rem;">
-            <div class="card m-2 p-2">
-                <p class="card-text text-center"><a href="/Teams/Show/@team.Id">@team.Name</a></p>
-            </div>
-        </div>
-    }
-</div>
-<br /><br />
-
-@if (ViewBag.ShowButtons || ViewBag.IsAdmin)
+@if (ViewBag.TeamsCount > 0)
 {
-    TempData["ProjectId"] = Model.Id;
-    <a href="/Tasks/New" class="btn btn-primary">Add Task</a>
-}
-
-@using (Html.BeginForm("Show", "Projects", FormMethod.Get))
-{
-    <div class="filter-container">
-        <label for="taskFilter">Filter:</label>
-        @Html.DropDownList("taskFilter", new SelectList(new[]
+    <div class="d-flex flex-row justify-content-center">
+        <h3>Teams</h3>
+    </div>
+    <div class="d-flex flex-row justify-content-center">
+        @foreach (var team in ViewBag.Teams)
         {
-            new SelectListItem { Text = "My Tasks", Value = "MyTasks" },
-            new SelectListItem { Text = "Other's Tasks", Value = "OthersTasks" },
-            new SelectListItem { Text = "All Tasks", Value = "AllTasks" }
-        }, "Value", "Text", ViewBag.taskFilter), new { onchange = "submit()" })
+            <div style="width: 18rem;">
+                <div class="card m-2 p-2">
+                    <p class="card-text text-center"><a href="/Teams/Show/@team.Id">@team.Name</a></p>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-info p-3 rounded-3 text-center">
+        No teams working on this project
     </div>
 }
 <br /><br />
 
-@foreach (DragonsLegacy.Models.Task task in ViewBag.Tasks)
+@if (ViewBag.Count > 0)
 {
-    <div class="card">
+    @if (!ViewBag.IsAdmin)
+    {
+        @using (Html.BeginForm("Show", "Projects", FormMethod.Get))
+        {
+            <div class="filter-container">
+                <label for="taskFilter">Filter:</label>
+                @Html.DropDownList("taskFilter", new SelectList(new[]
+                                  {
+                    new SelectListItem { Text = "My Tasks", Value = "MyTasks" },
+                    new SelectListItem { Text = "Other's Tasks", Value = "OthersTasks" },
+                    new SelectListItem { Text = "All Tasks", Value = "AllTasks" }
+                }, "Value", "Text", ViewBag.taskFilter), new { onchange = "submit()" })
+            </div>
+        }
+        <br /><br />
+    }
 
-        @Html.Partial("GeneralInfo", task)
+    @foreach (DragonsLegacy.Models.Task task in ViewBag.Tasks)
+    {
+        <div class="card">
 
-    </div> 
+            @Html.Partial("GeneralInfo", task)
 
-    <div class="text-center">
-        <a href="/Tasks/Show/@task.Id" class="btn btn-primary">Show Task</a>
-    </div>
-    <br />
-}
+        </div> 
 
-@if (ViewBag.LastPage != 1)
-{
-    <div>
-        <nav aria-label="Page navigation example">
-            <ul class="pagination">
-                <li class="page-item">
-                    <a class="page-link"
-                       href="@ViewBag.PaginationBaseUrl=1" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-                @for (int i = 1; i <= ViewBag.LastPage; i++)
-                {
+        <div class="text-center">
+            <a href="/Tasks/Show/@task.Id" class="btn btn-primary">Show Task</a>
+        </div>
+        <br />
+    }
+
+    @if (ViewBag.LastPage > 1)
+    {
+        <div>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
                     <li class="page-item">
                         <a class="page-link"
-                           href="@ViewBag.PaginationBaseUrl=@i">@(i)</a>
+                        href="@ViewBag.PaginationBaseUrl=1" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
                     </li>
-                }
-                <li class="page-item">
-                    <a class="page-link"
-                       href="@ViewBag.PaginationBaseUrl=@(ViewBag.LastPage)" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+                    @for (int i = 1; i <= ViewBag.LastPage; i++)
+                    {
+                        <li class="page-item">
+                            <a class="page-link"
+                            href="@ViewBag.PaginationBaseUrl=@i">@(i)</a>
+                        </li>
+                    }
+                    <li class="page-item">
+                        <a class="page-link"
+                        href="@ViewBag.PaginationBaseUrl=@(ViewBag.LastPage)" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+
+}
+else
+{
+    <div class="alert alert-info p-3 rounded-3 text-center">
+        No tasks found.
     </div>
 }

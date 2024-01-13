@@ -19,22 +19,25 @@
     </div>
 </form>
 
-@using (Html.BeginForm("Index", "Teams", FormMethod.Get))
+@if (!ViewBag.IsAdmin)
 {
-    @if (@ViewBag.SearchString != "")
+    @using (Html.BeginForm("Index", "Teams", FormMethod.Get))
     {
-        <input type="hidden" name="search" value="@ViewBag.SearchString" />
+        @if (@ViewBag.SearchString != "")
+        {
+            <input type="hidden" name="search" value="@ViewBag.SearchString" />
+        }
+        <div class="filter-container">
+            <label for="teamFilter">Filter:</label>
+            @Html.DropDownList("teamFilter", new SelectList(new[]
+                    {
+            new SelectListItem { Text = "Managed Teams", Value = "ManagedTeams" },
+            new SelectListItem { Text = "My Teams", Value = "MyTeams" },
+            new SelectListItem { Text = "Old Teams", Value = "OldTeams" },
+            new SelectListItem { Text = "All Teams", Value = "AllTeams" }
+            }, "Value", "Text", ViewBag.TeamFilter), new { onchange = "submit()" })
+        </div>
     }
-    <div class="filter-container">
-        <label for="teamFilter">Filter:</label>
-        @Html.DropDownList("teamFilter", new SelectList(new[]
-                {
-        new SelectListItem { Text = "Managed Teams", Value = "ManagedTeams" },
-        new SelectListItem { Text = "My Teams", Value = "MyTeams" },
-        new SelectListItem { Text = "Old Teams", Value = "OldTeams" },
-        new SelectListItem { Text = "All Teams", Value = "AllTeams" }
-        }, "Value", "Text", ViewBag.TeamFilter), new { onchange = "submit()" })
-    </div>
 }
 <br /><br />
 
@@ -54,7 +57,7 @@
         <br />
     }
 
-    @if (ViewBag.LastPage != 1)
+    @if (ViewBag.LastPage > 1)
     {
         <div>
             <nav aria-label="Page navigation example">

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Task = DragonsLegacy.Models.Task;
+using Microsoft.EntityFrameworkCore;
 
 namespace DragonsLegacy.Controllers
 {
@@ -93,16 +93,17 @@ namespace DragonsLegacy.Controllers
                            .Where(p => p.Name.Contains(search) || p.Description.Contains(search));
             }
 
-            int perPage = 3;
+            int perPage       = 3;
             int totalProjects = projects.Count();
-            var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
-            var offset = 0;
+            var currentPage   = Convert.ToInt32(HttpContext.Request.Query["page"]);
+            var offset        = 0;
 
             if (!currentPage.Equals(0))
             {
                 offset = (currentPage - 1) * perPage;
             }
 
+            ViewBag.IsAdmin       = User.IsInRole("Admin");
             ViewBag.Projects      = projects.Skip(offset).Take(perPage);
             ViewBag.Count         = totalProjects;
             ViewBag.ProjectFilter = projectFilter;
@@ -131,6 +132,7 @@ namespace DragonsLegacy.Controllers
             }
 
             Project project = db.Projects
+                                .Include("Organizer")
                                 .Where(p => p.Id == id)
                                 .First();
 
@@ -150,10 +152,10 @@ namespace DragonsLegacy.Controllers
                                    select team;
 
             // The project's teams
-            ViewBag.Teams = from teamProject in db.TeamProjects
-                            join team in db.Teams on teamProject.TeamId equals team.Id
-                            where teamProject.ProjectId == id
-                            select team;
+            var teams = from teamProject in db.TeamProjects
+                        join team in db.Teams on teamProject.TeamId equals team.Id
+                        where teamProject.ProjectId == id
+                        select team;
 
             // The project's tasks
             var tasks = from task in db.Tasks
@@ -180,16 +182,18 @@ namespace DragonsLegacy.Controllers
                         select task;
             }
 
-            int perPage = 2;
-            int totalTasks = tasks.Count();
+            int perPage     = 2;
+            int totalTasks  = tasks.Count();
             var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
-            var offset = 0;
+            var offset      = 0;
 
             if (!currentPage.Equals(0))
             {
                 offset = (currentPage - 1) * perPage;
             }
 
+            ViewBag.Teams             = teams;
+            ViewBag.TeamsCount        = teams.Count();
             ViewBag.Tasks             = tasks.Skip(offset).Take(perPage);
             ViewBag.Count             = totalTasks;
             ViewBag.TaskFilter        = taskFilter;
@@ -214,26 +218,13 @@ namespace DragonsLegacy.Controllers
                 {
                     db.TeamProjects.Add(teamProject);
                     db.SaveChanges();
-                        
-                    // If the organizer isn't in the added team, add him
-                    if (db.UserTeams
-                          .Where(ut => ut.TeamId == teamProject.TeamId && ut.UserId == _userManager.GetUserId(User))
-                          .Count() == 0)
-                    {
-                        UserTeam userTeam = new UserTeam();
-                        userTeam.TeamId   = teamProject.TeamId;
-                        userTeam.UserId   = _userManager.GetUserId(User);
-
-                        db.UserTeams.Add(userTeam);
-                        db.SaveChanges();
-                    }
 
                     // Every user in the team is added to the project
-                    var users = from userTeam in db.UserTeams
-                                where userTeam.TeamId == teamProject.TeamId
-                                select userTeam.UserId;
+                    var userIds = from userTeam in db.UserTeams
+                                  where userTeam.TeamId == teamProject.TeamId
+                                  select userTeam.UserId;
 
-                    foreach (string userId in users)
+                    foreach (string userId in userIds)
                     {
                         // If the user isn't in the project, add him
                         if (db.UserProjects
@@ -247,6 +238,7 @@ namespace DragonsLegacy.Controllers
                             db.UserProjects.Add(userProject);
                         }
                     }
+
                     db.SaveChanges();
 
                     TempData["message"]     = "The team was successfully added to the project";
@@ -281,23 +273,35 @@ namespace DragonsLegacy.Controllers
                     db.SaveChanges();
 
                     // Every user in the team is removed from the project
-                    var users = from userTeam in db.UserTeams
-                                where userTeam.TeamId == teamProject.TeamId
-                                select userTeam.UserId;
+                    var userIds = from userTeam in db.UserTeams
+                                  where userTeam.TeamId == teamProject.TeamId
+                                  select userTeam.UserId;
 
-                    foreach (string userId in users)
+                    // Select the current project
+                    var currProject = db.Projects.Find(teamProject.ProjectId);
+
+                    foreach (string userId in userIds)
                     {
-                        // If the user is in another team working on the project, don't remove him
-                        if (db.TeamProjects
-                              .Where(tp => tp.ProjectId == teamProject.ProjectId && tp.TeamId != teamProject.TeamId)
-                              .Count() == 0)
+                        var allTeams = from userTeam in db.UserTeams
+                                       where userTeam.UserId == userId
+                                       join teamProjects in db.TeamProjects on userTeam.TeamId equals teamProjects.TeamId
+                                       select teamProjects;
+
+                        // If the user isn't the organizer or if the user isn't in another team working on the project
+                        // Remove him from the project
+                        if (userId != currProject.OrganizerId || allTeams.Count() == 1)
                         {
-                            UserProject userProject = db.UserProjects
-                                                      .Where(up => up.ProjectId == teamProject.ProjectId && up.UserId == userId)
-                                                      .First();
+                            UserProject userProject = new UserProject();
+                            userProject.ProjectId = teamProject.ProjectId;
+                            userProject.UserId = userId;
+
                             db.UserProjects.Remove(userProject);
                         }
+
+                        // Not sure if we should delete his tasks and comments too
+                        // For now, we will keep them
                     }
+
                     db.SaveChanges();
 
                     TempData["message"]     = "The team was successfully removed from the project";
@@ -323,6 +327,8 @@ namespace DragonsLegacy.Controllers
         {
             Project project = new Project();
 
+            ViewBag.AllTeams = db.Teams;
+
             return View(project);
         }
 
@@ -331,13 +337,13 @@ namespace DragonsLegacy.Controllers
         {
             ApplicationUser user = _userManager.GetUserAsync(User).Result;
 
-            // The current user becomes the organizer
-            project.OrganizerId = user.Id;
-
             if (ModelState.IsValid) // Add the project to the database
             {
                 var sanitizer       = new HtmlSanitizer();
                 project.Description = sanitizer.Sanitize(project.Description);
+
+                // The current user becomes the organizer
+                project.OrganizerId = user.Id;
 
                 db.Projects.Add(project);
                 db.SaveChanges();
@@ -368,6 +374,7 @@ namespace DragonsLegacy.Controllers
         public IActionResult Edit(int id)
         {
             Project project = db.Projects
+                                .Include("Organizer")
                                 .Where(p => p.Id == id)
                                 .First();
 
@@ -429,8 +436,8 @@ namespace DragonsLegacy.Controllers
         public IActionResult Delete(int id)
         {
             Project project = db.Projects
-                          .Where(p => p.Id == id)
-                          .First();
+                                .Where(p => p.Id == id)
+                                .First();
 
             if (project.OrganizerId == _userManager.GetUserId(User) ||
                 User.IsInRole("Admin"))
@@ -468,20 +475,31 @@ namespace DragonsLegacy.Controllers
         [NonAction]
         private IEnumerable<SelectListItem> GetAllUsersFromProject(Project project)
         {
-            // Select all user objects from all teams working on the project
+            // Select all users from all teams working on the project
             var users = from userTeam in db.UserTeams
                         join teamProject in db.TeamProjects on userTeam.TeamId equals teamProject.TeamId
                         where teamProject.ProjectId == project.Id
                         select userTeam.User;
 
             var selectList = new List<SelectListItem>();
+
+            // Select the organizer as the default option
+            selectList.Add(new SelectListItem
+            {
+                Value    = project.OrganizerId.ToString(),
+                Text     = project.Organizer.UserName
+            });
+
             foreach (var user in users)
             {
-                selectList.Add(new SelectListItem
+                if (user.Id != project.OrganizerId)
                 {
-                    Value = user.Id.ToString(),
-                    Text = user.UserName.ToString()
-                });
+                    selectList.Add(new SelectListItem
+                    {
+                        Value    = user.Id.ToString(),
+                        Text     = user.UserName
+                    });
+                }
             }
 
             return selectList;

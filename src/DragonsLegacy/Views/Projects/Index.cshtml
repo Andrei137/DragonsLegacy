@@ -8,6 +8,7 @@
 }
 <br /><br />
 
+
 <form method="GET" action="/Projects/Index?projectFilter=@ViewBag.ProjectFilter">
     <div class="input-group mb-3">
         <input type="text" class="form-control" placeholder="Search topics or keywords" name="search" value="@ViewBag.SearchString" />
@@ -19,21 +20,24 @@
     </div>
 </form>
 
-@using (Html.BeginForm("Index", "Projects", FormMethod.Get))
-{
-    @if (@ViewBag.SearchString != "")
+@if (!ViewBag.IsAdmin)
     {
-        <input type="hidden" name="search" value="@ViewBag.SearchString" />
-    }
-    <div class="filter-container">
-        <label for="projectFilter">Filter:</label>
-        @Html.DropDownList("projectFilter", new SelectList(new[]
+    @using (Html.BeginForm("Index", "Projects", FormMethod.Get))
+    {
+        @if (@ViewBag.SearchString != "")
         {
-            new SelectListItem { Text = "Organized Projects", Value = "OrganizedProjects" },
-            new SelectListItem { Text = "My Projects", Value = "MyProjects" },
-            new SelectListItem { Text = "All Projects", Value = "AllProjects" }
-        }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
-    </div>
+            <input type="hidden" name="search" value="@ViewBag.SearchString" />
+        }
+        <div class="filter-container">
+            <label for="projectFilter">Filter:</label>
+            @Html.DropDownList("projectFilter", new SelectList(new[]
+            {
+                new SelectListItem { Text = "Organized Projects", Value = "OrganizedProjects" },
+                new SelectListItem { Text = "My Projects", Value = "MyProjects" },
+                new SelectListItem { Text = "All Projects", Value = "AllProjects" }
+            }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
+        </div>
+    }
 }
 <br /><br />
 
@@ -53,7 +57,7 @@
         <br />
     }
 
-    @if (ViewBag.LastPage != 1)
+    @if (ViewBag.LastPage > 1)
     {
         <div>
             <nav aria-label="Page navigation example">

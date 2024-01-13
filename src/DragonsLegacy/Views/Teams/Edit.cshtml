@@ -28,20 +28,8 @@
             @Html.TextArea("Description", Model.Description, new { @class = "summernote" })
             <br /><br />
 
-            @Html.Label("Change manager")
-            <select name="ManagerId" class="form-control">
-                @foreach (var user in ViewBag.InTeam)
-                {
-                    @if (user.Value != Model.ManagerId)
-                    {
-                        <option value="@user.Value">@user.Text</option>
-                    }
-                    else
-                    {
-                        <option selected value="@user.Value">@user.Text</option>
-                    }
-                }
-            </select>
+            @Html.Label("ManagerId", "Change manager")
+            @Html.DropDownList("ManagerId", new SelectList(ViewBag.InTeam, "Value", "Text"), new { @class = "form-control" })
             <br /><br />
 
             <button class="btn btn-success" type="submit">Edit</button>

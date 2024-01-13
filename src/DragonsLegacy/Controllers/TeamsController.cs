@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace DragonsLegacy.Controllers
 {
@@ -112,16 +113,17 @@ namespace DragonsLegacy.Controllers
                         .Where(t => t.Name.Contains(search) || t.Description.Contains(search));
             }
 
-            int perPage = 3;
-            int totalTeams = teams.Count();
+            int perPage     = 3;
+            int totalTeams  = teams.Count();
             var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
-            var offset = 0;
+            var offset      = 0;
 
             if (!currentPage.Equals(0))
             {
                 offset = (currentPage - 1) * perPage;
             }
 
+            ViewBag.IsAdmin      = User.IsInRole("Admin");
             ViewBag.Teams        = teams.Skip(offset).Take(perPage);
             ViewBag.Count        = totalTeams;
             ViewBag.TeamFilter   = teamFilter;
@@ -149,7 +151,10 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
-            Team team = db.Teams.Find(id);
+            Team team = db.Teams
+                          .Include("Manager")
+                          .Where(t => t.Id == id)
+                          .First();
 
             // Select the users who are in the team
             ViewBag.InTeam = GetAllUsersFromTeam(team);
@@ -212,10 +217,10 @@ namespace DragonsLegacy.Controllers
                         select task;
             }
 
-            int perPage = 2;
-            int totalTasks = tasks.Count();
+            int perPage     = 2;
+            int totalTasks  = tasks.Count();
             var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
-            var offset = 0;
+            var offset      = 0;
 
             if (!currentPage.Equals(0))
             {
@@ -366,7 +371,10 @@ namespace DragonsLegacy.Controllers
         // GET
         public IActionResult Edit(int id)
         {
-            Team team = db.Teams.Find(id);
+            Team team = db.Teams
+                          .Include("Manager")
+                          .Where(t => t.Id == id)
+                          .First();
 
             if (team.ManagerId == _userManager.GetUserId(User) || 
                 User.IsInRole("Admin"))
@@ -463,14 +471,16 @@ namespace DragonsLegacy.Controllers
 
             foreach (var user in db.Users.ToList())
             {
+                // Select all users from the team which aren't the manager
                 if (db.UserTeams
                       .Where(ut => ut.UserId == user.Id && ut.TeamId == team.Id)
                       .Count() != 0)
                 {
                     selectList.Add(new SelectListItem
                     {
-                        Value = user.Id.ToString(),
-                        Text  = user.UserName
+                        Value    = user.Id.ToString(),
+                        Text     = user.UserName,
+                        Selected = team.ManagerId == user.Id
                     });
                 }
             }

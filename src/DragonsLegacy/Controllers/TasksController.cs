@@ -40,15 +40,15 @@ namespace DragonsLegacy.Controllers
                         select task;
             
             // Filter
-            var taskFilter = "AllTasks";
+            var taskFilter  = "AllTasks";
 
             // Search engine
-            var search = "";
+            var search      = "";
 
-            int perPage = 3;
-            int totalTasks = tasks.Count();
+            int perPage     = 3;
+            int totalTasks  = tasks.Count();
             var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
-            var offset = 0;
+            var offset      = 0;
 
             // If the current user is admin, show all tasks
             if (User.IsInRole("Admin"))
@@ -189,13 +189,13 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
-            Task task = db.Tasks
-                          .Include("Comments")
-                          .Include("Comments.User")
-                          .Where(t => t.Id == id)
-                          .First();
-
-            ViewBag.UserId = _userManager.GetUserId(User);
+            ViewBag.UserId      = _userManager.GetUserId(User);
+            Task task           = db.Tasks
+                                    .Include("Comments")
+                                    .Include("Comments.User")
+                                    .Where(t => t.Id == id)
+                                    .First();
+            ViewBag.AllStatuses = GetAllStatuses(task);
 
             SetAccessRights(task);
 
@@ -289,7 +289,10 @@ namespace DragonsLegacy.Controllers
             }
             else
             {
-                Project project = db.Projects.Find(ProjectId);
+                Project project = db.Projects
+                                    .Include("Organizer")
+                                    .Where(p => p.Id == ProjectId)
+                                    .First();
 
                 if (project.OrganizerId != _userManager.GetUserId(User))
                 {
@@ -301,8 +304,9 @@ namespace DragonsLegacy.Controllers
                 else
                 {
                     ViewBag.ProjectId     = ProjectId;
-                    ViewBag.AllUsers      = GetAllUsers(project);
+                    ViewBag.AllUsers      = GetAllUsersFromProject(project);
                     ViewBag.AllCategories = GetAllCategories();
+                    ViewBag.AllPriorities = GetAllPriorities(null);
 
                     return View(task);
                 }
@@ -366,7 +370,7 @@ namespace DragonsLegacy.Controllers
             {
                 Project project            = db.Projects.Find(task.ProjectId);
                 ViewBag.ProjectId          = task.ProjectId;
-                ViewBag.AllUsers           = GetAllUsers(project);
+                ViewBag.AllUsers           = GetAllUsersFromProject(project);
                 ViewBag.AllCategories      = GetAllCategories();
                 ViewBag.SelectedCategories = task.SelectedCategories;
                 ViewBag.Message            = "The task couldn't be added";
@@ -385,12 +389,18 @@ namespace DragonsLegacy.Controllers
             // If the current user has the rights to edit
             if (ViewBag.IsOrganizer || ViewBag.IsAdmin)
             {
-                IEnumerable<SelectListItem> users = GetAllUsers(task.Project);
+                Project project = db.Projects
+                                    .Include("Organizer")
+                                    .Where(p => p.Id == task.ProjectId)
+                                    .First();
+
+                IEnumerable<SelectListItem> users = GetAllUsersFromProject(project);
                 ViewBag.AllUsers                  = users.Where(u => u.Value != task.UserId);
                 ViewBag.AllCategories             = GetAllCategories();
                 ViewBag.SelectedCategories        = from taskCategory in db.TaskCategories
                                                     where taskCategory.TaskId == id
                                                     select taskCategory.CategoryId;
+                ViewBag.AllPriorities             = GetAllPriorities(task);
 
                 return View(task);
             }
@@ -526,59 +536,7 @@ namespace DragonsLegacy.Controllers
                 ViewBag.IsUser = true;
             }
 
-            // If the current user is the organizer or this is his task, show the buttons
-            if (current_project.OrganizerId == _userManager.GetUserId(User) || task.UserId == _userManager.GetUserId(User))
-            {
-                ViewBag.ShowButtons = true;
-            }
-
             ViewBag.IsAdmin = User.IsInRole("Admin");
-        }
-
-        [NonAction]
-        private IEnumerable<SelectListItem> GetAllUsers(Project project)
-        {
-            // Select all user objects from all teams working on the project
-            var users = from userTeam in db.UserTeams
-                        join teamProject in db.TeamProjects on userTeam.TeamId equals teamProject.TeamId
-                        where teamProject.ProjectId == project.Id
-                        select userTeam.User;
-
-            var selectList = new List<SelectListItem>();
-            foreach (var user in users)
-            {
-                // add the user if he isn't admin
-                var role = _userManager.GetRolesAsync(user);
-
-                if (role.Result.First() != "Admin")
-                {
-                    selectList.Add(new SelectListItem
-                    {
-                        Value = user.Id.ToString(),
-                        Text  = user.UserName.ToString()
-                    });
-                }
-            }
-
-            return selectList;
-        }
-
-        [NonAction]
-        private IEnumerable<SelectListItem> GetAllCategories()
-        {
-            var selectList = new List<SelectListItem>();
-            var categories = from category in db.Categories
-                             select category;
-
-            foreach (var category in categories)
-            {
-                selectList.Add(new SelectListItem
-                {
-                    Value    = category.Id.ToString(),
-                    Text     = category.Name.ToString()
-                });
-            }
-            return selectList;
         }
 
         [NonAction]
@@ -606,6 +564,99 @@ namespace DragonsLegacy.Controllers
                         Text  = user.UserName.ToString()
                     });
                 }
+            }
+            return selectList;
+        }
+
+        [NonAction]
+        private IEnumerable<SelectListItem> GetAllUsersFromProject(Project project)
+        {
+            // Select all users from all teams working on the project
+            var users = from userTeam in db.UserTeams
+                        join teamProject in db.TeamProjects on userTeam.TeamId equals teamProject.TeamId
+                        where teamProject.ProjectId == project.Id
+                        select userTeam.User;
+
+            var selectList = new List<SelectListItem>();
+
+            // Select the organizer as the default option
+            selectList.Add(new SelectListItem
+            {
+                Value    = project.OrganizerId.ToString(),
+                Text     = project.Organizer.UserName
+            });
+
+            foreach (var user in users)
+            {
+                if (user.Id != project.OrganizerId)
+                {
+                    selectList.Add(new SelectListItem
+                    {
+                        Value    = user.Id.ToString(),
+                        Text     = user.UserName
+                    });
+                }
+            }
+
+            return selectList;
+        }
+
+        [NonAction]
+        private IEnumerable<SelectListItem> GetAllStatuses(Task? task)
+        {
+            var selectList  = new List<SelectListItem>();
+            var statusValue = new List<string> { "NotStarted", "InProgress", "Completed" };
+            var statusText  = new List<string> { "Not Started", "In Progress", "Completed" };
+            var currStatus  = task != null ? task.Status : "";
+
+            for (int i = 0; i < statusValue.Count; ++i)
+            {
+                selectList.Add(new SelectListItem
+                {
+                    Value    = statusValue[i],
+                    Text     = statusText[i],
+                    Selected = currStatus == statusValue[i]
+                });
+            }
+
+            return selectList;
+        }
+
+        [NonAction]
+        private IEnumerable<SelectListItem> GetAllPriorities(Task? task)
+        {
+            var selectList    = new List<SelectListItem>();
+            var priorityValue = new List<int> { 1, 2, 3 };
+            var priorityText  = new List<string> { "Low", "Medium", "High" };
+            var currPriority  = task != null ? task.Priority : 0;
+
+            for (int i = 0; i < priorityValue.Count; ++i)
+            {
+                selectList.Add(new SelectListItem
+                {
+                    Value    = priorityValue[i].ToString(),
+                    Text     = priorityText[i],
+                    Selected = currPriority == priorityValue[i]
+                });
+            }
+
+            return selectList;
+        }
+
+        [NonAction]
+        private IEnumerable<SelectListItem> GetAllCategories()
+        {
+            var selectList = new List<SelectListItem>();
+            var categories = from category in db.Categories
+                             select category;
+
+            foreach (var category in categories)
+            {
+                selectList.Add(new SelectListItem
+                {
+                    Value    = category.Id.ToString(),
+                    Text     = category.Name.ToString()
+                });
             }
             return selectList;
         }

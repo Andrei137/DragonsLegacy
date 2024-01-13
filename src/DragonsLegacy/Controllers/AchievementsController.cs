@@ -83,10 +83,10 @@ namespace DragonsLegacy.Controllers
                               .Where(ac => ac.Name.Contains(search) || ac.Description.Contains(search));
             }
 
-            int perPage = 3;
+            int perPage           = 3;
             int totalAchievements = achievements.Count();
-            var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
-            var offset = 0;
+            var currentPage       = Convert.ToInt32(HttpContext.Request.Query["page"]);
+            var offset            = 0;
 
             if (!currentPage.Equals(0))
             {

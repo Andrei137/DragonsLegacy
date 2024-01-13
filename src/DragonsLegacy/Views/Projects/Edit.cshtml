@@ -27,20 +27,8 @@
             @Html.TextArea("Description", Model.Description, new { @class = "summernote" })
             <br /><br />
 
-            @Html.Label("Change organizer")
-            <select name="OrganizerId" class="form-control">
-                @foreach (var user in ViewBag.InProject)
-                {
-                    @if (user.Value != Model.OrganizerId)
-                    {
-                        <option value="@user.Value">@user.Text</option>
-                    }
-                    else
-                    {
-                        <option selected value="@user.Value">@user.Text</option>
-                    }
-                }
-            </select>
+            @Html.Label("OrganizerId", "Change organizer")
+            @Html.DropDownList("OrganizerId", new SelectList(ViewBag.InProject, "Value", "Text"), new { @class = "form-control" })
             <br /><br />
 
             <button class="btn btn-success" type="submit">Edit</button>

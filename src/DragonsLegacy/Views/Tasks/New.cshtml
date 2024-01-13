@@ -28,46 +28,14 @@
         <br /><br />
 
         @Html.Label("Priority", "Priority")
-        <select name="Priority" class="form-control">
-            @if (Model.Priority == 0)
-            {
-                <option selected disabled>Select a priority</option>
-            }
-            else
-            {
-                <option disabled>Select a priority</option>
-            }
-            @if (@Model.Priority == 1)
-            {
-                <option selected value="1">Low</option>
-            }
-            else
-            {
-                <option value="1">Low</option>
-            }
-            @if (@Model.Priority == 2)
-            {
-                <option selected value="2">Medium</option>
-            }
-            else
-            {
-                <option value="2">Medium</option>
-            }
-            @if (@Model.Priority == 3)
-            {
-                <option selected value="3">High</option>
-            }
-            else
-            {
-                <option value="3">High</option>
-            }
-        </select>
+        @Html.DropDownList("Priority", new SelectList(ViewBag.AllPriorities, "Value", "Text"), new { @class = "form-control" })
         @Html.ValidationMessage("Priority", null, new { @class = "text-danger" })
         <br /><br />
 
         <input type="hidden" name="Status" value="NotStarted" />
         
         @Html.Label("Deadline", "Deadline")
+        <br />
         @Html.EditorFor(task => task.Deadline, null, new { @class = "form-control" })
         @Html.ValidationMessage("Deadline", null, new { @class = "text-danger" })
         <br /><br />

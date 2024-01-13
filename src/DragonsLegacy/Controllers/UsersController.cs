@@ -192,13 +192,6 @@ namespace ArticlesApp.Controllers
             {
                 if (await _userManager.IsInRoleAsync(user, role.Name))
                 {
-                    Console.WriteLine('\n');
-                    Console.WriteLine('\n');
-                    Console.WriteLine(role.Name);
-                    Console.WriteLine(user.UserName);
-                    Console.WriteLine('\n');
-                    Console.WriteLine('\n');
-
                     await _userManager.RemoveFromRoleAsync(user, role.Name);
                 }
             }

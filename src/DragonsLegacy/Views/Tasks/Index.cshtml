@@ -48,7 +48,7 @@ else
             <input type="hidden" name="search" value="@ViewBag.SearchString" />
         }
         <div class="form-group">
-            <label for="TaskFilter">Select a user:</label>
+            <label for="TaskFilter">Filter:</label>
             <select id="TaskFilter" name="TaskFilter" class="form-control" onchange="this.form.submit()">
                 @if (ViewBag.TaskFilter == "AllTasks")
                 {
@@ -94,7 +94,7 @@ else
         <br />
     }
 
-    @if (ViewBag.LastPage != 1)
+    @if (ViewBag.LastPage > 1)
     {
         <div>
             <nav aria-label="Page navigation example">

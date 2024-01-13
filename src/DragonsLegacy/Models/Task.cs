@@ -49,6 +49,7 @@ namespace DragonsLegacy.Models
         // The task belongs to an user
         public virtual ApplicationUser? User { get; set; }
 
+        // The task belongs to a project
         public virtual Project? Project { get; set; }
 
         // The task has several comments

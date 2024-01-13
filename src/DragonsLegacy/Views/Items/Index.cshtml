@@ -19,26 +19,26 @@
     </div>
 </form>
 
-@using (Html.BeginForm("Index", "Items", FormMethod.Get))
+@if (!ViewBag.IsAdmin)
 {
-    @if (@ViewBag.SearchString != "")
+    @using (Html.BeginForm("Index", "Items", FormMethod.Get))
     {
-        <input type="hidden" name="search" value="@ViewBag.SearchString" />
-    }
-    <div class="filter-container">
-        <label for="itemFilter">Filter:</label>
-        @Html.DropDownList("itemFilter", new SelectList(new[]
+        @if (@ViewBag.SearchString != "")
         {
-            new SelectListItem { Text = "Not Owned", Value = "NotOwnedItems" },
-            new SelectListItem { Text = "Owned", Value = "OwnedItems" },
-            new SelectListItem { Text = "All", Value = "AllItems" }
-        }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
-    </div>
+            <input type="hidden" name="search" value="@ViewBag.SearchString" />
+        }
+        <div class="filter-container">
+            <label for="itemFilter">Filter:</label>
+            @Html.DropDownList("itemFilter", new SelectList(new[]
+            {
+                new SelectListItem { Text = "Not Owned", Value = "NotOwnedItems" },
+                new SelectListItem { Text = "Owned", Value = "OwnedItems" },
+                new SelectListItem { Text = "All", Value = "AllItems" }
+            }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
+        </div>
+    }
 }
-
-
-<br />
-<br />
+<br /><br />
 
 @if (ViewBag.Count > 0)
 {
@@ -56,7 +56,7 @@
         <br />
     }
 
-    @if (ViewBag.LastPage != 1)
+    @if (ViewBag.LastPage > 1)
     {
         <div>
             <nav aria-label="Page navigation example">
