@@ -36,7 +36,7 @@
 
 <div class="row">
     <div class="col-6 offset-3 p-10">
-        @using (Html.BeginForm(actionName: "EditStatus", controllerName: "Tasks"))
+        @using (Html.BeginForm(actionName: "EditRole", controllerName: "Users", routeValues: new { id = @Model.Id }))
         {
             <input type="hidden" name="UserName" value="@Model.UserName" />
             <input type="hidden" name="Email" value="@Model.Email" />
@@ -44,8 +44,10 @@
             <input type="hidden" name="FirstName" value="@Model.FirstName" />
             <input type="hidden" name="LastName" value="@Model.LastName" />
 
-            <i class="bi bi-card-list"></i>
-            <label>Select new role</label>
+            <div class="text-center">
+                <i class="bi bi-card-list"></i>@Html.Label("newRole", "Change Role")
+            </div>
+            <br />
             @if (ViewBag.UserRole != "None")
             {
                 @Html.DropDownList("newRole", new SelectList(Model.AllRoles, "Value", "Text"), ViewBag.UserRole, new { @class = "form-control" })
@@ -54,6 +56,10 @@
             {
                 @Html.DropDownList("newRole", new SelectList(Model.AllRoles, "Value", "Text"), null, new { @class = "form-control" })
             }
+            <br />
+            <div class="d-flex flex-row justify-content-around">
+                <button class="btn btn-success" type="submit">Change role</button>
+            </div>
         }
     </div>
 </div>

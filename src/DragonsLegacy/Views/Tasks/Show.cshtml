@@ -33,7 +33,7 @@
                 <input type="hidden" name="Coins" value="@Model.Coins" />
 
                 <div class="text-center">
-                    @Html.Label("Status", "Status")
+                    @Html.Label("Status", "Change Status")
                 </div>
                 @Html.DropDownList("Status", new SelectList(ViewBag.AllStatuses, "Value", "Text"), new { @class = "form-control" })
                 <br />

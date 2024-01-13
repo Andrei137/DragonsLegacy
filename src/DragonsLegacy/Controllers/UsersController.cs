@@ -88,7 +88,7 @@ namespace ArticlesApp.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Edit(string id, ApplicationUser newData, [FromForm] string newRole)
+        public async Task<ActionResult> Edit(string id, ApplicationUser newData)
         {
             ApplicationUser user = db.Users.Find(id);
 
@@ -101,29 +101,20 @@ namespace ArticlesApp.Controllers
                     user.FirstName   = newData.FirstName;
                     user.LastName    = newData.LastName;
                     user.PhoneNumber = newData.PhoneNumber;
-                    var roles        = db.Roles.ToList();
-
-                    foreach (var role in roles)
-                    {
-                        await _userManager.RemoveFromRoleAsync(user, role.Name);
-                    }
-
-                    var roleName = await _roleManager.FindByIdAsync(newRole);
-                    await _userManager.AddToRoleAsync(user, roleName.ToString());
 
                     TempData["message"]     = "The user was successfully modified";
                     TempData["messageType"] = "alert-success";
 
                     db.SaveChanges();
 
-                    return RedirectToAction("Index");
+                    return RedirectToAction("Index", "Home");
                 }
                 else
                 {
                     TempData["message"]     = "You can't modify other users";
                     TempData["messageType"] = "alert-danger";
 
-                    return RedirectToAction("Index");
+                    return RedirectToAction("Index", "Home");
                 }
             }
             else // Invalid model state
@@ -223,14 +214,9 @@ namespace ArticlesApp.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult> EditRole([FromForm] ApplicationUser requestUser, [FromForm] string newRole)
+        public async Task<ActionResult> EditRole(string id, [FromForm] string newRole)
         {
-            ApplicationUser user = db.Users.Find(requestUser.Id);
-            user.UserName        = requestUser.UserName;
-            user.Email           = requestUser.Email;
-            user.FirstName       = requestUser.FirstName;
-            user.LastName        = requestUser.LastName;
-            user.PhoneNumber     = requestUser.PhoneNumber;
+            ApplicationUser user = db.Users.Find(id);
             var roles            = db.Roles.ToList();
 
             foreach (var role in roles)
@@ -241,7 +227,7 @@ namespace ArticlesApp.Controllers
             var roleName = await _roleManager.FindByIdAsync(newRole);
             await _userManager.AddToRoleAsync(user, roleName.ToString());
 
-            TempData["message"]     = "The user was successfully modified";
+            TempData["message"]     = "The user's role was successfully modified";
             TempData["messageType"] = "alert-success";
 
             db.SaveChanges();

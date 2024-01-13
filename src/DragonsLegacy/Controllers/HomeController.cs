@@ -15,6 +15,12 @@ namespace DragonsLegacy.Controllers
 
         public IActionResult Index()
         {
+            if (TempData.ContainsKey("message"))
+            {
+                ViewBag.Message = TempData["message"];
+                ViewBag.Alert   = TempData["messageType"];
+            }
+
             return View();
         }
 
