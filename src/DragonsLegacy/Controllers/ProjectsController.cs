@@ -156,12 +156,46 @@ namespace DragonsLegacy.Controllers
                             select team;
 
             // The project's tasks
-            ViewBag.Tasks = from task in db.Tasks
-                            where task.ProjectId == id
-                            select task;
+            var tasks = from task in db.Tasks
+                        where task.ProjectId == id
+                        select task;
 
-            // Every user in the project
-            ViewBag.AllUsers = GetAllUsersFromProject(project);
+            var taskFilter = "AllTasks";
+
+            if (Convert.ToString(HttpContext.Request.Query["taskFilter"]) != null)
+            {
+                taskFilter = Convert.ToString(HttpContext.Request.Query["taskFilter"]).Trim();
+            }
+
+            if (taskFilter == "MyTasks")
+            {
+                tasks = from task in db.Tasks
+                        where task.ProjectId == id && task.UserId == _userManager.GetUserId(User)
+                        select task;
+            }
+            else if (taskFilter == "OthersTasks")
+            {
+                tasks = from task in db.Tasks
+                        where task.ProjectId == id && task.UserId != _userManager.GetUserId(User)
+                        select task;
+            }
+
+            int perPage = 2;
+            int totalTasks = tasks.Count();
+            var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
+            var offset = 0;
+
+            if (!currentPage.Equals(0))
+            {
+                offset = (currentPage - 1) * perPage;
+            }
+
+            ViewBag.Tasks             = tasks.Skip(offset).Take(perPage);
+            ViewBag.Count             = totalTasks;
+            ViewBag.TaskFilter        = taskFilter;
+            ViewBag.LastPage          = Math.Ceiling((float)totalTasks / (float)perPage);
+            ViewBag.PaginationBaseUrl = "/Projects/Show/" + id + "/?taskFilter=" + taskFilter + "&page";
+            ViewBag.AllUsers          = GetAllUsersFromProject(project);
 
             SetAccessRights(project);
 

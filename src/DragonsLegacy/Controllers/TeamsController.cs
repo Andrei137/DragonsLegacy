@@ -183,14 +183,50 @@ namespace DragonsLegacy.Controllers
                               select user;
 
             // Select all the tasks that are assigned to a member in the team
-            ViewBag.Tasks = from task in db.Tasks
-                            where (
-                                       from userTeam in db.UserTeams
-                                       join user in db.Users on userTeam.UserId equals user.Id
-                                       where userTeam.TeamId == id
-                                       select user.Id
-                                   ).Contains(task.UserId)
-                            select task;
+            var tasks = from task in db.Tasks
+                        where (
+                                   from userTeam in db.UserTeams
+                                   join user in db.Users on userTeam.UserId equals user.Id
+                                   where userTeam.TeamId == id
+                                   select user.Id
+                               ).Contains(task.UserId)
+                        select task;
+
+            var taskFilter = "AllTasks";
+
+            if (Convert.ToString(HttpContext.Request.Query["taskFilter"]) != null)
+            {
+                taskFilter = Convert.ToString(HttpContext.Request.Query["taskFilter"]).Trim();
+            }
+
+            if (taskFilter == "MyTasks")
+            {
+                tasks = from task in tasks
+                        where task.UserId ==_userManager.GetUserId(User)
+                        select task;
+            }
+            else if (taskFilter == "OthersTasks")
+            {
+                tasks = from task in tasks
+                        where task.UserId !=_userManager.GetUserId(User)
+                        select task;
+            }
+
+            int perPage = 2;
+            int totalTasks = tasks.Count();
+            var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
+            var offset = 0;
+
+            if (!currentPage.Equals(0))
+            {
+                offset = (currentPage - 1) * perPage;
+            }
+
+            ViewBag.Tasks             = tasks.Skip(offset).Take(perPage);
+            ViewBag.Count             = totalTasks;
+            ViewBag.TaskFilter        = taskFilter;
+            ViewBag.LastPage          = Math.Ceiling((float)totalTasks / (float)perPage);
+            ViewBag.PaginationBaseUrl = "/Teams/Show/" + id + "/?taskFilter=" + taskFilter + "&page";
 
             SetAccessRights(team);
 

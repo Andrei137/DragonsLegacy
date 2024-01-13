@@ -33,7 +33,7 @@ namespace DragonsLegacy.Controllers
             if (TempData.ContainsKey("message"))
             {
                 ViewBag.Message = TempData["message"];
-                ViewBag.Alert = TempData["messageType"];
+                ViewBag.Alert   = TempData["messageType"];
             }
 
             var tasks = from task in db.Tasks
@@ -161,12 +161,12 @@ namespace DragonsLegacy.Controllers
                 offset = (currentPage - 1) * perPage;
             }
 
-            ViewBag.Tasks        = tasks.Skip(offset).Take(perPage);
-            ViewBag.Count        = totalTasks;
-            ViewBag.TaskFilter   = taskFilter;
-            ViewBag.SearchString = search;
+            ViewBag.Tasks         = tasks.Skip(offset).Take(perPage);
+            ViewBag.Count         = totalTasks;
+            ViewBag.TaskFilter    = taskFilter;
+            ViewBag.SearchString  = search;
             ViewBag.LastPage      = Math.Ceiling((float)totalTasks / (float)perPage);
-            ViewBag.IsAdmin      = false;
+            ViewBag.IsAdmin       = false;
 
             if (search != "")
             {
@@ -223,16 +223,19 @@ namespace DragonsLegacy.Controllers
                 // If the task is completed, give the rewards to the user
                 var user = db.Users.Find(task.UserId);
                 user.ExperiencePoints += task.ExperiencePoints;
-                user.Coins            += task.Coins;
+                user.Coins += task.Coins;
 
                 // The rewards are given only once
                 task.ExperiencePoints = 0;
-                task.Coins            = 0;
+                task.Coins = 0;
 
-                // Task completed now
-                task.EndDate          = DateTime.Now;
+                if (task.EndDate == null)
+                {
+                    // Task completed now
+                    task.EndDate = DateTime.Now;
+                }
             }
-            else
+            else if (task.EndDate == null)
             {
                 task.EndDate = null;
             }
@@ -276,7 +279,6 @@ namespace DragonsLegacy.Controllers
             int ProjectId         = (int)TempData["ProjectId"];
             Task task             = new Task();
             task.Deadline         = task.StartDate = DateTime.Now;
-            task.ExperiencePoints = task.Coins = 0;
 
             if (ProjectId == null)
             {
@@ -447,6 +449,9 @@ namespace DragonsLegacy.Controllers
                     task.Coins              = requestTask.Coins;
                     
                     db.SaveChanges();
+
+                    TempData["message"]     = "The task was successfully modified";
+                    TempData["messageType"] = "alert-danger";
                     
                     return RedirectToAction("Index");
                 }

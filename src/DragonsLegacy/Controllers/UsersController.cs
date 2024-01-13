@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Task = System.Threading.Tasks.Task;
 
 namespace ArticlesApp.Controllers
 {
@@ -17,20 +18,26 @@ namespace ArticlesApp.Controllers
 
         private readonly RoleManager<IdentityRole> _roleManager;
 
-        public UsersController(
+        public UsersController
+        (
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager
-            )
+        )
         {
             db           = context;
             _userManager = userManager;
             _roleManager = roleManager;
         }
 
-        [Authorize(Roles = "Admin")]
         public IActionResult Index()
         {
+            if (TempData.ContainsKey("message"))
+            {
+                ViewBag.Message = TempData["message"];
+                ViewBag.Alert   = TempData["messageType"];
+            }
+
             var users = from user in db.Users
                         orderby user.UserName
                         select user;
@@ -43,13 +50,16 @@ namespace ArticlesApp.Controllers
         public async Task<ActionResult> Show(string id)
         {
             ApplicationUser user = db.Users.Find(id);
+            var roleNames        = await _userManager.GetRolesAsync(user);
 
-            var roleNames       = await _userManager.GetRolesAsync(user);
-            var currentUserRole = _roleManager.Roles
-                                              .Where(r => roleNames.Contains(r.Name))
-                                              .Select(r => r.Id)
-                                              .First();
-            ViewBag.UserRole    = db.Roles.Find(currentUserRole).Name;
+            if (roleNames.Count > 0)
+            {
+                ViewBag.UserRole = roleNames[0];
+            }
+            else
+            {
+                ViewBag.UserRole = "None";
+            }
 
             return View(user);
         }
@@ -57,13 +67,17 @@ namespace ArticlesApp.Controllers
         public async Task<ActionResult> Edit(string id)
         {
             ApplicationUser user = db.Users.Find(id);
-            user.AllRoles        = GetAllRoles();
+            user.AllRoles        = GetAllRoles(user);
             var roleNames        = await _userManager.GetRolesAsync(user);
-            var currentUserRole  = _roleManager.Roles
-                                               .Where(r => roleNames.Contains(r.Name))
-                                               .Select(r => r.Id)
-                                               .First();
-            ViewBag.UserRole     = currentUserRole;
+
+            if (roleNames.Count > 0)
+            {
+                ViewBag.UserRole = roleNames[0];
+            }
+            else
+            {
+                ViewBag.UserRole = "None";
+            }
 
             return View(user);
         }
@@ -72,9 +86,8 @@ namespace ArticlesApp.Controllers
         public async Task<ActionResult> Edit(string id, ApplicationUser newData, [FromForm] string newRole)
         {
             ApplicationUser user = db.Users.Find(id);
-            user.AllRoles        = GetAllRoles();
 
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) // Modify the user
             {
                 user.UserName    = newData.UserName;
                 user.Email       = newData.Email;
@@ -91,15 +104,24 @@ namespace ArticlesApp.Controllers
                 var roleName = await _roleManager.FindByIdAsync(newRole);
                 await _userManager.AddToRoleAsync(user, roleName.ToString());
 
-                db.SaveChanges();
-                
-            }
+                TempData["message"]     = "The user was successfully modified";
+                TempData["messageType"] = "alert-success";
 
-            return RedirectToAction("Index");
+                db.SaveChanges();
+
+                return RedirectToAction("Index");
+            }
+            else // Invalid model state
+            {
+                TempData["message"]     = "The user coudln't be modified";
+                TempData["messageType"] = "alert-danger";
+
+                return View(newData);
+            }
         }
 
         [HttpPost]
-        public IActionResult Delete(string id)
+        public async Task Delete(string id)
         {
             var user = db.Users
                          .Include("Comments")
@@ -142,56 +164,111 @@ namespace ArticlesApp.Controllers
                 }
             }
 
-            replaceOrganizerAndManager(id);
-
             db.ApplicationUsers.Remove(user);
 
             db.SaveChanges();
 
+            replaceOrganizerAndManager(id);
+
+            TempData["message"]     = "The user was successfully deleted";
+            TempData["messageType"] = "alert-success";
+        }
+
+        public async Task<IActionResult> RestrictAccess(string id)
+        {
+            var user = await db.Users.FindAsync(id);
+
+            // Don't let the admin restrict himself
+            if (id == _userManager.GetUserId(User))
+            {
+                TempData["message"]     = "The user couldn't be restricted";
+                TempData["messageType"] = "alert-danger";
+                return RedirectToAction("Index");
+            }
+
+            var roles = db.Roles.ToList();
+
+            foreach (var role in roles)
+            {
+                if (await _userManager.IsInRoleAsync(user, role.Name))
+                {
+                    Console.WriteLine('\n');
+                    Console.WriteLine('\n');
+                    Console.WriteLine(role.Name);
+                    Console.WriteLine(user.UserName);
+                    Console.WriteLine('\n');
+                    Console.WriteLine('\n');
+
+                    await _userManager.RemoveFromRoleAsync(user, role.Name);
+                }
+            }
+
+            await replaceOrganizerAndManager(id);
+
+            TempData["message"]     = "The user was successfully restricted";
+            TempData["messageType"] = "alert-success";
+
             return RedirectToAction("Index");
         }
 
-        private void replaceOrganizerAndManager(string id)
+
+        private async Task replaceOrganizerAndManager(string id)
         {
-            var teams = db.Teams
-                          .Where(t => t.ManagerId == id)
-                          .ToList();
+            // Check if the user is a manager for any team
+            var isManager = db.Teams.Any(t => t.ManagerId == id);
 
-            // The new manager will be the one with the most experience points from that team
-            foreach (var team in teams)
+            if (isManager)
             {
-                var usersFromTeam = db.Users
-                                      .Include("UserTeams")
-                                      .Where(u => u.UserTeams.Any(ut => ut.TeamId == team.Id) && u.Id != team.ManagerId)
-                                      .ToList();
+                var teams = db.Teams
+                              .Where(t => t.ManagerId == id)
+                              .ToList();
 
-                var newManager = usersFromTeam.OrderByDescending(u => u.ExperiencePoints)
-                                              .First();
+                // The new manager will be the one with the most experience points from that team
+                foreach (var team in teams)
+                {
+                    var usersFromTeam = db.Users
+                                          .Include("UserTeams")
+                                          .Where(u => u.UserTeams.Any(ut => ut.TeamId == team.Id) && u.Id != team.ManagerId)
+                                          .ToList();
 
-                team.ManagerId = newManager.Id;
+                    var newManager = usersFromTeam.OrderByDescending(u => u.ExperiencePoints)
+                                                  .First();
+
+                    team.ManagerId = newManager.Id;
+                }
             }
 
-            var projects = db.Projects
-                            .Where(p => p.OrganizerId == id)
-                            .ToList();
+            // Check if the user is an organizer for any project
+            var isOrganizer = db.Projects.Any(p => p.OrganizerId == id);
 
-            // The new organizer will be the one with the most experience points from that project
-            foreach (var project in projects)
+            if (isOrganizer)
             {
-                var usersFromProject = db.Users
-                                         .Include("UserProjects")
-                                         .Where(u => u.UserProjects.Any(up => up.ProjectId == project.Id) && u.Id != project.OrganizerId)
-                                         .ToList();
+                var projects = db.Projects
+                                .Where(p => p.OrganizerId == id)
+                                .ToList();
 
-                var newOrganizer = usersFromProject.OrderByDescending(u => u.ExperiencePoints)
-                                                   .First();
+                // The new organizer will be the one with the most experience points from that project
+                foreach (var project in projects)
+                {
+                    var usersFromProject = db.Users
+                                             .Include("UserProjects")
+                                             .Where(u => u.UserProjects.Any(up => up.ProjectId == project.Id) && u.Id != project.OrganizerId)
+                                             .ToList();
 
-                project.OrganizerId = newOrganizer.Id;
+                    var newOrganizer = usersFromProject.OrderByDescending(u => u.ExperiencePoints)
+                                                       .First();
+
+                    project.OrganizerId = newOrganizer.Id;
+                }
             }
+
+            await db.SaveChangesAsync();
+
+            RedirectToAction("Index");
         }
 
         [NonAction]
-        private IEnumerable<SelectListItem> GetAllRoles()
+        private IEnumerable<SelectListItem> GetAllRoles(ApplicationUser? user)
         {
             var selectList = new List<SelectListItem>();
 
@@ -200,12 +277,18 @@ namespace ArticlesApp.Controllers
 
             foreach (var role in roles)
             {
-                selectList.Add(new SelectListItem
+                var hasRole = _userManager.IsInRoleAsync(user, role.Name).Result;
+
+                if (user == null || !hasRole)
                 {
-                    Value = role.Id.ToString(),
-                    Text = role.Name.ToString()
-                });
+                    selectList.Add(new SelectListItem
+                    {
+                        Value = role.Id.ToString(),
+                        Text = role.Name.ToString()
+                    });
+                }
             }
+
             return selectList;
         }
     }

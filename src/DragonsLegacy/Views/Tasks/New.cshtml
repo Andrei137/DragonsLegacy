@@ -66,23 +66,9 @@
         <br /><br />
 
         <input type="hidden" name="Status" value="NotStarted" />
-
-        @{
-            string year = Model.Deadline.Year.ToString();
-            string month = Model.Deadline.Month.ToString();
-            string day = Model.Deadline.Day.ToString();
-            if (month.Count() == 1)
-            {
-                month = "0" + month;
-            }
-            if (day.Count() == 1)
-            {
-                day = "0" + day;
-            }
-        }
-
+        
         @Html.Label("Deadline", "Deadline")
-        <input type="date" name="Deadline" class="form-control" value="@year-@month-@day"/>
+        @Html.EditorFor(task => task.Deadline, null, new { @class = "form-control" })
         @Html.ValidationMessage("Deadline", null, new { @class = "text-danger" })
         <br /><br />
 

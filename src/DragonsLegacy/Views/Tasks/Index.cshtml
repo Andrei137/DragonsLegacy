@@ -94,31 +94,34 @@ else
         <br />
     }
 
-    <div>
-        <nav aria-label="Page navigation example">
-            <ul class="pagination">
-                <li class="page-item">
-                    <a class="page-link"
-                       href="@ViewBag.PaginationBaseUrl=1" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-                @for (int i = 1; i <= ViewBag.LastPage; i++)
-                {
+    @if (ViewBag.LastPage != 1)
+    {
+        <div>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
                     <li class="page-item">
                         <a class="page-link"
-                           href="@ViewBag.PaginationBaseUrl=@i">@(i)</a>
+                           href="@ViewBag.PaginationBaseUrl=1" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
                     </li>
-                }
-                <li class="page-item">
-                    <a class="page-link"
-                       href="@ViewBag.PaginationBaseUrl=@(ViewBag.LastPage)" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </div>
+                    @for (int i = 1; i <= ViewBag.LastPage; i++)
+                    {
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="@ViewBag.PaginationBaseUrl=@i">@(i)</a>
+                        </li>
+                    }
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="@ViewBag.PaginationBaseUrl=@(ViewBag.LastPage)" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
 }
 else
 {

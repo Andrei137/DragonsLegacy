@@ -42,7 +42,14 @@
 
             <i class="bi bi-card-list"></i>
             <label>Select new role</label>
-            @Html.DropDownList("newRole", new SelectList(Model.AllRoles, "Value", "Text", ViewBag.UserRole), null, new { @class = "form-control" })
+            @if (ViewBag.UserRole != "None")
+            {
+                @Html.DropDownList("newRole", new SelectList(Model.AllRoles, "Value", "Text"), ViewBag.UserRole, new { @class = "form-control" })
+            }
+            else
+            {
+                @Html.DropDownList("newRole", new SelectList(Model.AllRoles, "Value", "Text"), null, new { @class = "form-control" })
+            }
             <br /> <br />
 
             <button class="btn btn-sm btn-success" type="submit">Edit</button>

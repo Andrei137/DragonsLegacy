@@ -22,15 +22,13 @@
 
         <div class="d-flex flex-row justify-content-between p-3">
 
-            @if ((string)Model.Id != ViewBag.UserCurent)
-            {
-                @using (Html.BeginForm(actionName: "Delete", controllerName: "Users", method: FormMethod.Post, routeValues: new { id = @Model.Id }))
-                {
-         
-                    <button class="btn btn-danger" type="submit">Delete</button>
+                <div> <a class="btn btn-sm btn-success" href="/Users/Edit/@Model.Id"> Edit</a> </div>
+                    
+                <div> <a class="btn btn-sm btn-primary" href="/Users/RestrictAccess/@Model.Id"> Restrict Access</a> </div>
 
-                }
-            }   
+                <form method="post" action="/Users/Delete/@Model.Id">
+                    <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                </form>
         </div>
     </div>
 </div>
