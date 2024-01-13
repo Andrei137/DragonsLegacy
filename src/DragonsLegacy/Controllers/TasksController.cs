@@ -36,15 +36,6 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
-            if (Convert.ToString(HttpContext.Request.Query["deleteButton"]) != null)
-            {
-                ViewBag.DeleteButton = true;
-            }
-            else
-            {
-                ViewBag.DeleteButton = false;
-            }
-
             var tasks = from task in db.Tasks.Include("User").Include("Project")
                         select task;
             

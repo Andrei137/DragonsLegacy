@@ -29,15 +29,6 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
-            if (Convert.ToString(HttpContext.Request.Query["deleteButton"]) != null)
-            {
-                ViewBag.DeleteButton = true;
-            }
-            else
-            {
-                ViewBag.DeleteButton = false;
-            }
-
             var achievements = from achievement in db.Achievements
                                select achievement;
 
@@ -92,7 +83,7 @@ namespace DragonsLegacy.Controllers
                               .Where(ac => ac.Name.Contains(search) || ac.Description.Contains(search));
             }
 
-            int perPage           = 3;
+            int perPage           = 6;
             int totalAchievements = achievements.Count();
             var currentPage       = Convert.ToInt32(HttpContext.Request.Query["page"]);
             var offset            = 0;
@@ -102,6 +93,7 @@ namespace DragonsLegacy.Controllers
                 offset = (currentPage - 1) * perPage;
             }
 
+            ViewBag.IsAdmin           = User.IsInRole("Admin");
             ViewBag.Achievements      = achievements.Skip(offset).Take(perPage);
             ViewBag.Count             = totalAchievements;
             ViewBag.AchievementFilter = achievementFilter;

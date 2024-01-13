@@ -24,15 +24,6 @@ namespace ArticlesApp.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
-            if (Convert.ToString(HttpContext.Request.Query["deleteButton"]) != null)
-            {
-                ViewBag.DeleteButton = true;
-            }
-            else
-            {
-                ViewBag.DeleteButton = false;
-            }
-
             // Select all categories in alphabetical order
             var categories = from category in db.Categories
                              orderby category.Name
@@ -61,6 +52,7 @@ namespace ArticlesApp.Controllers
                 offset = (currentPage - 1) * perPage;
             }
 
+            ViewBag.IsAdmin      = User.IsInRole("Admin");
             ViewBag.Categories   = categories.Skip(offset).Take(perPage);
             ViewBag.Count        = totalCategories;
             ViewBag.SearchString = search;

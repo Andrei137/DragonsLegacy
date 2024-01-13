@@ -51,7 +51,7 @@
                 <div class="d-flex flex-row justify-content-around p-3">
                     <div> <a href="/Achievements/Show/@achievement.Id" class="btn btn-dark">Show achievement</a> </div>
 
-                    @if (ViewBag.DeleteButton)
+                    @if (ViewBag.IsAdmin)
                     {
                         <div> <a href="/Achievements/Delete/@achievement.Id" class="btn btn-danger">Delete achievement</a> </div>
                     }

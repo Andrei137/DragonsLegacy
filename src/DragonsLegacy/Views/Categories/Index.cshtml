@@ -29,7 +29,7 @@
                 <div class="d-flex flex-row justify-content-around p-3">
                     <div> <a href="/Categories/Show/@category.Id" class="btn btn-dark">Show category</a> </div>
 
-                    @if (ViewBag.DeleteButton)
+                    @if (ViewBag.IsAdmin)
                     {
                         <div> <a href="/Categories/Delete/@category.Id" class="btn btn-danger">Delete category</a> </div>
                     }

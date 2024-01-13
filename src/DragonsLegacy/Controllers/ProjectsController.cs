@@ -32,15 +32,6 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
-            if (Convert.ToString(HttpContext.Request.Query["deleteButton"]) != null)
-            {
-                ViewBag.DeleteButton = true;
-            }
-            else
-            {
-                ViewBag.DeleteButton = false;
-            }
-   
             var projects = from project in db.Projects.Include("Organizer")
                            select project;
                             
@@ -193,7 +184,7 @@ namespace DragonsLegacy.Controllers
                         select task;
             }
 
-            int perPage     = 2;
+            int perPage     = 3;
             int totalTasks  = tasks.Count();
             var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
             var offset      = 0;
