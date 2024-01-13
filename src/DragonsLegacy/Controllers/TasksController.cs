@@ -54,7 +54,7 @@ namespace DragonsLegacy.Controllers
             // Search engine
             var search      = "";
 
-            int perPage     = 2;
+            int perPage     = 6;
             int totalTasks  = tasks.Count();
             var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
             var offset      = 0;

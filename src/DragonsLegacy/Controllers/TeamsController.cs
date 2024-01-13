@@ -122,7 +122,7 @@ namespace DragonsLegacy.Controllers
                         .Where(t => t.Name.Contains(search) || t.Description.Contains(search));
             }
 
-            int perPage     = 3;
+            int perPage     = 9;
             int totalTeams  = teams.Count();
             var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
             var offset      = 0;

@@ -51,7 +51,7 @@ namespace ArticlesApp.Controllers
                              .Where(c => c.Name.Contains(search));
             }
 
-            int perPage         = 3;
+            int perPage         = 12;
             int totalCategories = categories.Count();
             var currentPage     = Convert.ToInt32(HttpContext.Request.Query["page"]);
             var offset          = 0;

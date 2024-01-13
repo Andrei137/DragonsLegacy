@@ -102,7 +102,7 @@ namespace DragonsLegacy.Controllers
                            .Where(p => p.Name.Contains(search) || p.Description.Contains(search));
             }
 
-            int perPage       = 3;
+            int perPage       = 9;
             int totalProjects = projects.Count();
             var currentPage   = Convert.ToInt32(HttpContext.Request.Query["page"]);
             var offset        = 0;

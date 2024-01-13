@@ -90,7 +90,7 @@ namespace DragonsLegacy.Controllers
                         .Where(i => i.Name.Contains(search) || i.Description.Contains(search));
             }
 
-            int perPage     = 3;
+            int perPage     = 9;
             int totalItems  = items.Count();
             var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
             var offset      = 0;
