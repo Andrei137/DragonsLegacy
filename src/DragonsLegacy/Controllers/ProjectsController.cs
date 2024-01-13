@@ -182,13 +182,13 @@ namespace DragonsLegacy.Controllers
 
             if (taskFilter == "MyTasks")
             {
-                tasks = from task in db.Tasks
+                tasks = from task in db.Tasks.Include("User").Include("Project")
                         where task.ProjectId == id && task.UserId == _userManager.GetUserId(User)
                         select task;
             }
             else if (taskFilter == "OthersTasks")
             {
-                tasks = from task in db.Tasks
+                tasks = from task in db.Tasks.Include("User").Include("Project")
                         where task.ProjectId == id && task.UserId != _userManager.GetUserId(User)
                         select task;
             }
