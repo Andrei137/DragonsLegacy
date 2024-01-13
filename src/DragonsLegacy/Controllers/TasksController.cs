@@ -219,7 +219,6 @@ namespace DragonsLegacy.Controllers
             task.ExperiencePoints   = requestTask.ExperiencePoints;
             task.Coins              = requestTask.Coins;
             task.Status             = requestTask.Status;
-            task.Multiplayer        = requestTask.Multiplayer;
 
             if (task.Status == "Completed")
             {
