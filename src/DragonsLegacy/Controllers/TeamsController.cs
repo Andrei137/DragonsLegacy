@@ -197,7 +197,7 @@ namespace DragonsLegacy.Controllers
                               select user;
 
             // Select all the tasks that are assigned to a member in the team
-            var tasks = from task in db.Tasks
+            var tasks = from task in db.Tasks.Include("User").Include("Project")
                         where (
                                    from userTeam in db.UserTeams
                                    join user in db.Users on userTeam.UserId equals user.Id
