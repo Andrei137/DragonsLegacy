@@ -11,44 +11,39 @@
 <br /><br />
 
 <div class="card">
-
-    @Html.Partial("GeneralInfo", Model)
-    
-    @if (ViewBag.CurrentUser == Model.UserId)
-    {
-        <div class="row">
-            <div class="col-6 offset-3 p-10">
-                @using (Html.BeginForm(actionName: "EditStatus", controllerName: "Tasks"))
-                {
-                    <input type="hidden" name="Id" value="@Model.Id" />
-                    <input type="hidden" name="Name" value="@Model.Name" />
-                    <input type="hidden" name="Description" value="@Model.Description" />
-                    <input type="hidden" name="Priority" value="@Model.Priority" />
-                    <input type="hidden" name="Deadline" value="@Model.Deadline" />
-                    <input type="hidden" name="StartDate" value="@Model.StartDate" />
-                    <input type="hidden" name="EndDate" value="@Model.EndDate" />
-                    <input type="hidden" name="UserId" value="@Model.UserId" />
-                    <input type="hidden" name="ExperiencePoints" value="@Model.ExperiencePoints" />
-                    <input type="hidden" name="Coins" value="@Model.Coins" />
-
-                    <div class="text-center">
-                        @Html.Label("Status", "Status")
-                    </div>
-                    <div class="d-flex flex-row justify-content-around">
-                        @Html.DropDownList("Status", new SelectList(ViewBag.AllStatuses, "Value", "Text"), new { @class = "form-control" })
-                        <button class="btn btn-success" type="submit">Edit</button>
-                    </div>
-                }
-            </div>
-        </div>
-    }
-    <br /><br />
-
-    <div class="text-center">
-        <embed src="@Model.Multimedia" style="max-height: 150px; min-height: 50px; min-width: 50px;" />
-    </div>
+    @Html.Partial("TaskInfo", Model)
 </div>
 <br />
+
+@if (ViewBag.CurrentUser == Model.UserId)
+{
+    <div class="row">
+        <div class="col-6 offset-3 p-10">
+            @using (Html.BeginForm(actionName: "EditStatus", controllerName: "Tasks"))
+            {
+                <input type="hidden" name="Id" value="@Model.Id" />
+                <input type="hidden" name="Name" value="@Model.Name" />
+                <input type="hidden" name="Description" value="@Model.Description" />
+                <input type="hidden" name="Priority" value="@Model.Priority" />
+                <input type="hidden" name="Deadline" value="@Model.Deadline" />
+                <input type="hidden" name="StartDate" value="@Model.StartDate" />
+                <input type="hidden" name="EndDate" value="@Model.EndDate" />
+                <input type="hidden" name="UserId" value="@Model.UserId" />
+                <input type="hidden" name="ExperiencePoints" value="@Model.ExperiencePoints" />
+                <input type="hidden" name="Coins" value="@Model.Coins" />
+
+                <div class="text-center">
+                    @Html.Label("Status", "Status")
+                </div>
+                @Html.DropDownList("Status", new SelectList(ViewBag.AllStatuses, "Value", "Text"), new { @class = "form-control" })
+                <br />
+                <div class="d-flex flex-row justify-content-around">
+                    <button class="btn btn-success" type="submit">Change status</button>
+                </div>
+            }
+        </div>
+    </div>
+}
 
 @if (ViewBag.IsOrganizer || ViewBag.IsAdmin)
 {

@@ -32,7 +32,7 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
    
-            var projects = from project in db.Projects
+            var projects = from project in db.Projects.Include("Organizer")
                            select project;
                             
             // Filter
@@ -61,13 +61,13 @@ namespace DragonsLegacy.Controllers
 
             if (projectFilter == "OrganizedProjects") // Select the projects for which the user is the organizer
             {
-                projects = from project in db.Projects
+                projects = from project in db.Projects.Include("Organizer")
                            where project.OrganizerId == _userManager.GetUserId(User)
                            select project;
             }
             else if (projectFilter == "MyProjects") // Select the projects the user is working on
             {
-                projects = from project in db.Projects
+                projects = from project in db.Projects.Include("Organizer")
                            join userProject in db.UserProjects on project.Id equals userProject.ProjectId
                            where userProject.UserId == _userManager.GetUserId(User)
                            select project;
@@ -161,6 +161,8 @@ namespace DragonsLegacy.Controllers
             var tasks = from task in db.Tasks
                         where task.ProjectId == id
                         select task;
+            
+            ViewBag.Count = tasks.Count();
 
             var taskFilter = "AllTasks";
 
@@ -195,7 +197,6 @@ namespace DragonsLegacy.Controllers
             ViewBag.Teams             = teams;
             ViewBag.TeamsCount        = teams.Count();
             ViewBag.Tasks             = tasks.Skip(offset).Take(perPage);
-            ViewBag.Count             = totalTasks;
             ViewBag.TaskFilter        = taskFilter;
             ViewBag.LastPage          = Math.Ceiling((float)totalTasks / (float)perPage);
             ViewBag.PaginationBaseUrl = "/Projects/Show/" + id + "/?taskFilter=" + taskFilter + "&page";

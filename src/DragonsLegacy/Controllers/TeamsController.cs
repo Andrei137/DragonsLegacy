@@ -32,7 +32,7 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
-            var teams = from team in db.Teams
+            var teams = from team in db.Teams.Include("Manager")
                         select team;
 
             // Filter
@@ -61,13 +61,13 @@ namespace DragonsLegacy.Controllers
 
             if (teamFilter == "ManagedTeams") // Select the teams for which the user is the manager
             {
-                teams = from team in db.Teams
+                teams = from team in db.Teams.Include("Manager")
                         where team.ManagerId == _userManager.GetUserId(User)
                         select team;
             }
             else if (teamFilter == "MyTeams") // Select the teams that the user is in
             {
-                teams = from team in db.Teams
+                teams = from team in db.Teams.Include("Manager")
                         join userTeam in db.UserTeams on team.Id equals userTeam.TeamId
                         where userTeam.UserId == _userManager.GetUserId(User)
                         select team;
@@ -75,7 +75,7 @@ namespace DragonsLegacy.Controllers
             else if (teamFilter == "OldTeams") // Select the teams that the user was in
             {
                 // Select the old teams from the user's history
-                teams = from team in db.Teams
+                teams = from team in db.Teams.Include("Manager")
                         join teamHistory in db.TeamsHistory on team.Id equals teamHistory.TeamId
                         where teamHistory.UserId == _userManager.GetUserId(User)
                         select team;
@@ -197,6 +197,8 @@ namespace DragonsLegacy.Controllers
                                ).Contains(task.UserId)
                         select task;
 
+            ViewBag.Count = tasks.Count();
+
             var taskFilter = "AllTasks";
 
             if (Convert.ToString(HttpContext.Request.Query["taskFilter"]) != null)
@@ -228,7 +230,6 @@ namespace DragonsLegacy.Controllers
             }
 
             ViewBag.Tasks             = tasks.Skip(offset).Take(perPage);
-            ViewBag.Count             = totalTasks;
             ViewBag.TaskFilter        = taskFilter;
             ViewBag.LastPage          = Math.Ceiling((float)totalTasks / (float)perPage);
             ViewBag.PaginationBaseUrl = "/Teams/Show/" + id + "/?taskFilter=" + taskFilter + "&page";

@@ -12,85 +12,73 @@
 
 <div class="card">
 
-    @Html.Partial("GeneralInfo", Model)
+    @Html.Partial("TeamInfo", Model)
 
-    <br />
-
-    @if (ViewBag.ShowButtons || ViewBag.IsAdmin)
-    {
-        <div class="d-flex flex-row justify-content-around">
-
-            <a class="btn btn-primary" href="/Teams/Edit/@Model.Id">Edit</a>
-
-            <form method="post" action="/Teams/Delete/@Model.Id">
-
-                <button type="submit" class="btn btn-danger">Delete</button>
-
-            </form>
-
-        </div>
-
-        <br />
-    }
-
-    @if (ViewBag.ShowButtons)
-    {
-        <div class="d-flex flex-row justify-content-around">
-            <form method="post" asp-controller="Teams" asp-action="AddUser">
-                <input type="hidden" name="TeamId" value="@Model.Id" />
-                <div class="d-flex flex-row justify-content-center p-3">
-                    <div>
-                        <select name="UserId" class="form-control">
-                            <option selected disabled>Add this user to the team</option>
-                            @foreach (var user in ViewBag.NotInTeam)
-                            {
-                                <option value="@user.Id">@user.UserName</option>
-                            }
-                        </select>
-                    </div>
-                    <div>
-                        <input type="submit" class="btn btn-success alert-success" value="+" />
-                    </div>
-                </div>
-            </form>
-
-            <form method="post" asp-controller="Teams" asp-action="RemoveUser">
-                <input type="hidden" name="TeamId" value="@Model.Id" />
-                <div class="d-flex flex-row justify-content-center p-3">
-                    <div>
-                        <select name="UserId" class="form-control">
-                            <option selected disabled>Remove this user from the team</option>
-                            @foreach (var user in ViewBag.InTeam)
-                            {
-                                @if (user.Value != Model.ManagerId)
-                                {
-                                    <option value="@user.Value">@user.Text</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                    <div>
-                        <input type="submit" class="btn btn-danger alert-danger" value="-" />
-                    </div>
-                </div>
-            </form>
-        </div>
-    }
-
-    <br />
 </div>
-
 <br /><b3 />
+@if (ViewBag.ShowButtons || ViewBag.IsAdmin)
+{
+    <div class="d-flex flex-row justify-content-around">
+
+        <a class="btn btn-primary" href="/Teams/Edit/@Model.Id">Edit</a>
+
+        <form method="post" action="/Teams/Delete/@Model.Id">
+
+            <button type="submit" class="btn btn-danger">Delete</button>
+
+        </form>
+
+    </div>
+
+    <br />
+}
+
+@if (ViewBag.ShowButtons)
+{
+    <div class="d-flex flex-row justify-content-around">
+        <form method="post" asp-controller="Teams" asp-action="AddUser">
+            <input type="hidden" name="TeamId" value="@Model.Id" />
+            <div class="d-flex flex-row justify-content-center p-3">
+                <div>
+                    <select name="UserId" class="form-control">
+                        <option selected disabled>Add this user to the team</option>
+                        @foreach (var user in ViewBag.NotInTeam)
+                        {
+                            <option value="@user.Id">@user.UserName</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <input type="submit" class="btn btn-success alert-success" value="+" />
+                </div>
+            </div>
+        </form>
+
+        <form method="post" asp-controller="Teams" asp-action="RemoveUser">
+            <input type="hidden" name="TeamId" value="@Model.Id" />
+            <div class="d-flex flex-row justify-content-center p-3">
+                <div>
+                    <select name="UserId" class="form-control">
+                        <option selected disabled>Remove this user from the team</option>
+                        @foreach (var user in ViewBag.InTeam)
+                        {
+                            @if (user.Value != Model.ManagerId)
+                            {
+                                <option value="@user.Value">@user.Text</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div>
+                    <input type="submit" class="btn btn-danger alert-danger" value="-" />
+                </div>
+            </div>
+        </form>
+    </div>
+}
 
 <h3 class="text-center">Members</h3>
 <div class="d-flex flex-row justify-content-center">
-    <div style="width: 18rem;">
-        <div class="card m-2 p-2">
-            <h5 class="card-title  text-center">Manager</h5>
-            <p class="card-text  text-center">@Model.Manager.UserName</p>
-        </div>
-    </div>
-
     @foreach (var user in ViewBag.Members)
     {
         <div style="width: 18rem;">

@@ -36,7 +36,7 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
-            var tasks = from task in db.Tasks
+            var tasks = from task in db.Tasks.Include("User").Include("Project")
                         select task;
             
             // Filter
@@ -45,7 +45,7 @@ namespace DragonsLegacy.Controllers
             // Search engine
             var search      = "";
 
-            int perPage     = 3;
+            int perPage     = 2;
             int totalTasks  = tasks.Count();
             var currentPage = Convert.ToInt32(HttpContext.Request.Query["page"]);
             var offset      = 0;
@@ -60,7 +60,7 @@ namespace DragonsLegacy.Controllers
 
                 if (taskFilter != "AllTasks")
                 {
-                    tasks = from task in db.Tasks
+                    tasks = from task in db.Tasks.Include("User").Include("Project")
                             where task.UserId == taskFilter
                             select task;
                 }
@@ -120,7 +120,7 @@ namespace DragonsLegacy.Controllers
                 var userId = _userManager.GetUserId(User);
 
                 // Select the tasks of the current user
-                tasks = from task in db.Tasks
+                tasks = from task in db.Tasks.Include("User").Include("Project")
                         where task.UserId == userId
                         select task;
             }
@@ -132,7 +132,7 @@ namespace DragonsLegacy.Controllers
                 var userId = _userManager.GetUserId(User);
 
                 // Select the tasks of the current user
-                tasks = from task in db.Tasks
+                tasks = from task in db.Tasks.Include("User").Include("Project")
                         where task.UserId == userId && task.Status == taskFilter
                         select task;
             }
@@ -191,6 +191,8 @@ namespace DragonsLegacy.Controllers
 
             ViewBag.UserId      = _userManager.GetUserId(User);
             Task task           = db.Tasks
+                                    .Include("User")
+                                    .Include("Project")
                                     .Include("Comments")
                                     .Include("Comments.User")
                                     .Where(t => t.Id == id)
@@ -422,7 +424,7 @@ namespace DragonsLegacy.Controllers
 
             if (ModelState.IsValid) // Modify the task
             {
-                if (ViewBag.IsOrganizer)
+                if (ViewBag.IsOrganizer || ViewBag.IsAdmin)
                 {
                     // Remove the old categories from the task
                     var taskCategories = from taskCategory in db.TaskCategories
@@ -461,7 +463,7 @@ namespace DragonsLegacy.Controllers
                     db.SaveChanges();
 
                     TempData["message"]     = "The task was successfully modified";
-                    TempData["messageType"] = "alert-danger";
+                    TempData["messageType"] = "alert-success";
                     
                     return RedirectToAction("Index");
                 }
