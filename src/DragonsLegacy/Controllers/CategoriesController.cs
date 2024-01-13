@@ -24,6 +24,15 @@ namespace ArticlesApp.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
+            if (TempData.ContainsKey("deletebutton"))
+            {
+                ViewBag.DeleteButton = true;
+            }
+            else
+            {
+                ViewBag.DeleteButton = false;
+            }
+
             // Select all categories in alphabetical order
             var categories = from category in db.Categories
                              orderby category.Name

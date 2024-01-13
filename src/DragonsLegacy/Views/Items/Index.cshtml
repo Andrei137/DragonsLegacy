@@ -50,8 +50,14 @@
 
         </div>
 
-        <div class="text-center">
-            <a href="/Items/Show/@item.Id" class="btn btn-dark">Show Item</a>
+        <div class="d-flex flex-row justify-content-around p-3">
+
+            <div> <a href="/ItemsShow/@item.Id" class="btn btn-dark">Show item</a> </div>
+
+            @if (ViewBag.DeleteButton)
+            {
+                <div> <a href="/ItemsDelete/@item.Id" class="btn btn-danger">Delete item</a> </div>
+            }
         </div>
         <br />
     }

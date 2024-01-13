@@ -31,6 +31,15 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Message = TempData["message"];
                 ViewBag.Alert   = TempData["messageType"];
             }
+
+            if (TempData.ContainsKey("deletebutton"))
+            {
+                ViewBag.DeleteButton = true;
+            }
+            else
+            {
+                ViewBag.DeleteButton = false;
+            }
    
             var projects = from project in db.Projects.Include("Organizer")
                            select project;

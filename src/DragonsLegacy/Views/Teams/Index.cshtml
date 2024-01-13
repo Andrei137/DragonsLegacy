@@ -51,8 +51,14 @@
 
         </div>
 
-        <div class="text-center">
-            <a href="/Teams/Show/@team.Id" class="btn btn-dark">Show Team</a>
+        <div class="d-flex flex-row justify-content-around p-3">
+
+            <div> <a href="/Teams/Show/@team.Id" class="btn btn-dark">Show team</a> </div>
+
+            @if (ViewBag.DeleteButton)
+            {
+                <div> <a href="/Teams/Delete/@team.Id" class="btn btn-danger">Delete team</a> </div>
+            }
         </div>
         <br />
     }

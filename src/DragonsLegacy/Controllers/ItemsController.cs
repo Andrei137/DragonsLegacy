@@ -32,6 +32,15 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
+            if (TempData.ContainsKey("deletebutton"))
+            {
+                ViewBag.DeleteButton = true;
+            }
+            else
+            {
+                ViewBag.DeleteButton = false;
+            }
+
             var items = from item in db.Items
                         select item;
 

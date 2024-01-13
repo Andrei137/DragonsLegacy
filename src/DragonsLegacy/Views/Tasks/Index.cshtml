@@ -88,8 +88,14 @@ else
 
         </div>
 
-        <div class="text-center">
-            <a href="/Tasks/Show/@task.Id" class="btn btn-dark">Show Task</a>
+        <div class="d-flex flex-row justify-content-around p-3">
+
+            <div> <a href="/Tasks/Show/@task.Id" class="btn btn-dark">Show task</a> </div>
+
+            @if (ViewBag.DeleteButton)
+            {
+                <div> <a href="/Tasks/Delete/@task.Id" class="btn btn-danger">Delete task</a> </div>
+            }
         </div>
         <br />
     }

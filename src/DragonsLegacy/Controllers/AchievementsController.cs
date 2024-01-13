@@ -29,6 +29,15 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
+            if (TempData.ContainsKey("deletebutton"))
+            {
+                ViewBag.DeleteButton = true;
+            }
+            else
+            {
+                ViewBag.DeleteButton = false;
+            }
+
             var achievements = from achievement in db.Achievements
                                select achievement;
 
