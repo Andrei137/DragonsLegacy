@@ -43,25 +43,33 @@
 
 @if (ViewBag.Count > 0)
 {
-    @foreach (DragonsLegacy.Models.Project project in ViewBag.Projects)
-    {
-        <div class="card">
+    <div class="row">
+        @{int counter = 0;}
+        @foreach (DragonsLegacy.Models.Project project in ViewBag.Projects)
+        {
+            <div class="col-md-4">
+                <div class="card">
+                    @Html.Partial("ProjectInfo", project)
+                </div>
 
-            @Html.Partial("ProjectInfo", project)
+                <div class="d-flex flex-row justify-content-around p-3">
+                    <div> <a href="/Projects/Show/@project.Id" class="btn btn-dark">Show project</a> </div>
 
-        </div>
+                    @if (ViewBag.DeleteButton)
+                    {
+                        <div> <a href="/Projects/Delete/@project.Id" class="btn btn-danger">Delete project</a> </div>
+                    }
 
-        <div class="d-flex flex-row justify-content-around p-3">
+                </div>
+            </div>
 
-            <div> <a href="/Projects/Show/@project.Id" class="btn btn-dark">Show project</a> </div>
-
-            @if (ViewBag.DeleteButton)
+            counter++;
+            if (counter % 3 == 0 && counter < ViewBag.Count)
             {
-                <div> <a href="/Projects/Delete/@project.Id" class="btn btn-danger">Delete project</a> </div>
+                @:</div><div class="row">
             }
-        </div>
-        <br />
-    }
+        }
+    </div>
 
     @if (ViewBag.LastPage > 1)
     {

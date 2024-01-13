@@ -39,25 +39,33 @@
 
 @if (ViewBag.Count > 0)
 {
-    @foreach (DragonsLegacy.Models.Achievement achievement in ViewBag.Achievements)
-    {
-        <div class="card">
+    <div class="row">
+        @{int counter = 0;}
+        @foreach (DragonsLegacy.Models.Achievement achievement in ViewBag.Achievements)
+        {
+            <div class="col-md-4">
+                <div class="card">
+                    @Html.Partial("AchievementInfo", achievement)
+                </div>
 
-            @Html.Partial("AchievementInfo", achievement)
+                <div class="d-flex flex-row justify-content-around p-3">
+                    <div> <a href="/Achievements/Show/@achievement.Id" class="btn btn-dark">Show achievement</a> </div>
 
-        </div>
+                    @if (ViewBag.DeleteButton)
+                    {
+                        <div> <a href="/Achievements/Delete/@achievement.Id" class="btn btn-danger">Delete achievement</a> </div>
+                    }
 
-        <div class="d-flex flex-row justify-content-around p-3">
+                </div>
+            </div>
 
-            <div> <a href="/Achievements/Show/@achievement.Id" class="btn btn-dark">Show achievement</a> </div>
-
-            @if (ViewBag.DeleteButton)
+            counter++;
+            if (counter % 3 == 0 && counter < ViewBag.Count)
             {
-                <div> <a href="/Achievements/Delete/@achievement.Id" class="btn btn-danger">Delete achievement</a> </div>
+                @:</div><div class="row">
             }
-        </div>
-        <br />
-    }
+        }
+    </div>
 
     @if (ViewBag.LastPage > 1)
     {

@@ -12,11 +12,11 @@
         <embed src="@Model.Multimedia" style="max-height: 150px; min-height: 50px; min-width: 50px;" />
     </div>
 
-    <div class="card-text">Description @Html.Raw(Model.Description)</div>
+    <div class="card-text">Description: @Html.Raw(Model.Description)</div>
 
     <div class="card-text">Details</div>
     <ul>
         <li>Price: @Model.Price</li>
-        <li>In stock: @isAvailable</li>
+        <li>stock: @isAvailable</li>
     </ul>
 </div>

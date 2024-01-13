@@ -43,25 +43,33 @@
 
 @if (ViewBag.Count > 0)
 {
-    @foreach (DragonsLegacy.Models.Team team in ViewBag.Teams)
-    {
-        <div class="card">
+    <div class="row">
+        @{int counter = 0;}
+        @foreach (DragonsLegacy.Models.Team team in ViewBag.Teams)
+        {
+            <div class="col-md-4">
+                <div class="card">
+                    @Html.Partial("TeamInfo", team)
+                </div>
 
-            @Html.Partial("TeamInfo", team)
+                <div class="d-flex flex-row justify-content-around p-3">
+                    <div> <a href="/Teams/Show/@team.Id" class="btn btn-dark">Show team</a> </div>
 
-        </div>
+                    @if (ViewBag.DeleteButton)
+                    {
+                        <div> <a href="/Teams/Delete/@team.Id" class="btn btn-danger">Delete team</a> </div>
+                    }
 
-        <div class="d-flex flex-row justify-content-around p-3">
+                </div>
+            </div>
 
-            <div> <a href="/Teams/Show/@team.Id" class="btn btn-dark">Show team</a> </div>
-
-            @if (ViewBag.DeleteButton)
+            counter++;
+            if (counter % 3 == 0 && counter < ViewBag.Count)
             {
-                <div> <a href="/Teams/Delete/@team.Id" class="btn btn-danger">Delete team</a> </div>
+                @:</div><div class="row">
             }
-        </div>
-        <br />
-    }
+        }
+    </div>
 
     @if (ViewBag.LastPage > 1)
     {
