@@ -1,6 +1,4 @@
-﻿<h2 class="text-center">Index Items</h2>
-
-@if (ViewBag.Message != null)
+﻿@if (ViewBag.Message != null)
 {
     <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
         @ViewBag.Message
@@ -33,7 +31,7 @@
             {
                 new SelectListItem { Text = "Not Owned", Value = "NotOwnedItems" },
                 new SelectListItem { Text = "Owned", Value = "OwnedItems" },
-                new SelectListItem { Text = "All", Value = "AllItems" }
+                new SelectListItem { Text = "All Items", Value = "AllItems" }
             }, "Value", "Text", ViewBag.ProjectFilter), new { onchange = "submit()" })
         </div>
     }

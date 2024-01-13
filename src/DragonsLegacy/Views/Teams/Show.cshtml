@@ -1,7 +1,5 @@
 ﻿@model DragonsLegacy.Models.Team
 
-<h2 class="text-center">Show Team</h2>
-
 @if (ViewBag.Message != null)
 {
     <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
@@ -77,7 +75,9 @@
     </div>
 }
 
-<h3 class="text-center">Members</h3>
+<div class="d-flex flex-row justify-content-center">
+    <h3>Members</h3>
+</div>
 <div class="d-flex flex-row justify-content-center">
     @foreach (var user in ViewBag.Members)
     {

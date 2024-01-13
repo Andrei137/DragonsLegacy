@@ -1,6 +1,4 @@
-﻿<h2 class="text-center">Index Achievements</h2>
-
-@if (ViewBag.Message != null)
+﻿@if (ViewBag.Message != null)
 {
     <div class="alert @ViewBag.Alert p-3 rounded-3 text-center mb-5">
         @ViewBag.Message
@@ -31,7 +29,7 @@
         {
             new SelectListItem { Text = "Not Achieved", Value = "NotAchieved" },
             new SelectListItem { Text = "Achieved", Value = "Achieved" },
-            new SelectListItem { Text = "All", Value = "All" }
+            new SelectListItem { Text = "All Achievements", Value = "All" }
         }, "Value", "Text", ViewBag.AchievementFilter), new { onchange = "submit()" })
     </div>
 }
