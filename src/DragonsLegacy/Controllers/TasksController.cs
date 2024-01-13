@@ -36,7 +36,7 @@ namespace DragonsLegacy.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
-            if (TempData.ContainsKey("deletebutton"))
+            if (Convert.ToString(HttpContext.Request.Query["deleteButton"]) != null)
             {
                 ViewBag.DeleteButton = true;
             }
@@ -257,7 +257,6 @@ namespace DragonsLegacy.Controllers
 
             return Redirect("/Tasks/Index/?taskFilter=" + task.Status);
         }
-
 
         [HttpPost]
         public IActionResult Show([FromForm] Comment comment)

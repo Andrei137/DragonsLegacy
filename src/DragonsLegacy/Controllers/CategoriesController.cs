@@ -24,7 +24,7 @@ namespace ArticlesApp.Controllers
                 ViewBag.Alert   = TempData["messageType"];
             }
 
-            if (TempData.ContainsKey("deletebutton"))
+            if (Convert.ToString(HttpContext.Request.Query["deleteButton"]) != null)
             {
                 ViewBag.DeleteButton = true;
             }

@@ -32,9 +32,30 @@
         </div>
     </div>
 </div>
+<br /><br />
 
+<div class="row">
+    <div class="col-6 offset-3 p-10">
+        @using (Html.BeginForm(actionName: "EditStatus", controllerName: "Tasks"))
+        {
+            <input type="hidden" name="UserName" value="@Model.UserName" />
+            <input type="hidden" name="Email" value="@Model.Email" />
+            <input type="hidden" name="PhoneNumber" value="@Model.PhoneNumber" />
+            <input type="hidden" name="FirstName" value="@Model.FirstName" />
+            <input type="hidden" name="LastName" value="@Model.LastName" />
 
-
-
+            <i class="bi bi-card-list"></i>
+            <label>Select new role</label>
+            @if (ViewBag.UserRole != "None")
+            {
+                @Html.DropDownList("newRole", new SelectList(Model.AllRoles, "Value", "Text"), ViewBag.UserRole, new { @class = "form-control" })
+            }
+            else
+            {
+                @Html.DropDownList("newRole", new SelectList(Model.AllRoles, "Value", "Text"), null, new { @class = "form-control" })
+            }
+        }
+    </div>
+</div>
 
 

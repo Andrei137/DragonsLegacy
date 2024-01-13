@@ -9,7 +9,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace ArticlesApp.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class UsersController : Controller
     {
         private readonly ApplicationDbContext db;
@@ -30,6 +30,7 @@ namespace ArticlesApp.Controllers
             _roleManager = roleManager;
         }
 
+        [Authorize(Roles = "Admin")]
         public IActionResult Index()
         {
             if (TempData.ContainsKey("message"))
@@ -47,9 +48,11 @@ namespace ArticlesApp.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Show(string id)
         {
             ApplicationUser user = db.Users.Find(id);
+            user.AllRoles        = GetAllRoles(user);
             var roleNames        = await _userManager.GetRolesAsync(user);
 
             if (roleNames.Count > 0)
@@ -79,6 +82,8 @@ namespace ArticlesApp.Controllers
                 ViewBag.UserRole = "None";
             }
 
+            ViewBag.IsAdmin = _userManager.IsInRoleAsync(user, "Admin").Result;
+
             return View(user);
         }
 
@@ -89,27 +94,37 @@ namespace ArticlesApp.Controllers
 
             if (ModelState.IsValid) // Modify the user
             {
-                user.UserName    = newData.UserName;
-                user.Email       = newData.Email;
-                user.FirstName   = newData.FirstName;
-                user.LastName    = newData.LastName;
-                user.PhoneNumber = newData.PhoneNumber;
-                var roles        = db.Roles.ToList();
-
-                foreach (var role in roles)
+                if (id == _userManager.GetUserId(User))
                 {
-                    await _userManager.RemoveFromRoleAsync(user, role.Name);
+                    user.UserName    = newData.UserName;
+                    user.Email       = newData.Email;
+                    user.FirstName   = newData.FirstName;
+                    user.LastName    = newData.LastName;
+                    user.PhoneNumber = newData.PhoneNumber;
+                    var roles        = db.Roles.ToList();
+
+                    foreach (var role in roles)
+                    {
+                        await _userManager.RemoveFromRoleAsync(user, role.Name);
+                    }
+
+                    var roleName = await _roleManager.FindByIdAsync(newRole);
+                    await _userManager.AddToRoleAsync(user, roleName.ToString());
+
+                    TempData["message"]     = "The user was successfully modified";
+                    TempData["messageType"] = "alert-success";
+
+                    db.SaveChanges();
+
+                    return RedirectToAction("Index");
                 }
+                else
+                {
+                    TempData["message"]     = "You can't modify other users";
+                    TempData["messageType"] = "alert-danger";
 
-                var roleName = await _roleManager.FindByIdAsync(newRole);
-                await _userManager.AddToRoleAsync(user, roleName.ToString());
-
-                TempData["message"]     = "The user was successfully modified";
-                TempData["messageType"] = "alert-success";
-
-                db.SaveChanges();
-
-                return RedirectToAction("Index");
+                    return RedirectToAction("Index");
+                }
             }
             else // Invalid model state
             {
@@ -120,6 +135,7 @@ namespace ArticlesApp.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task Delete(string id)
         {
@@ -174,6 +190,7 @@ namespace ArticlesApp.Controllers
             TempData["messageType"] = "alert-success";
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RestrictAccess(string id)
         {
             var user = await db.Users.FindAsync(id);
@@ -204,6 +221,33 @@ namespace ArticlesApp.Controllers
             return RedirectToAction("Index");
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<ActionResult> EditRole([FromForm] ApplicationUser requestUser, [FromForm] string newRole)
+        {
+            ApplicationUser user = db.Users.Find(requestUser.Id);
+            user.UserName        = requestUser.UserName;
+            user.Email           = requestUser.Email;
+            user.FirstName       = requestUser.FirstName;
+            user.LastName        = requestUser.LastName;
+            user.PhoneNumber     = requestUser.PhoneNumber;
+            var roles            = db.Roles.ToList();
+
+            foreach (var role in roles)
+            {
+                await _userManager.RemoveFromRoleAsync(user, role.Name);
+            }
+
+            var roleName = await _roleManager.FindByIdAsync(newRole);
+            await _userManager.AddToRoleAsync(user, roleName.ToString());
+
+            TempData["message"]     = "The user was successfully modified";
+            TempData["messageType"] = "alert-success";
+
+            db.SaveChanges();
+
+            return RedirectToAction("Index");
+        }
 
         private async Task replaceOrganizerAndManager(string id)
         {
