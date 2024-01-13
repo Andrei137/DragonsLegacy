@@ -16,7 +16,7 @@ namespace ArticlesApp.Controllers
             db = context;
         }
 
-        public ActionResult Index()
+        public IActionResult Index()
         {
             if (TempData.ContainsKey("message"))
             {
@@ -70,15 +70,8 @@ namespace ArticlesApp.Controllers
             return View();
         }
 
-        public ActionResult Show(int id)
-        {
-            Category category = db.Categories.Find(id);
-
-            return View(category);
-        }
-
         // GET
-        public ActionResult New()
+        public IActionResult New()
         {
             Category category = new Category();
 
@@ -86,7 +79,7 @@ namespace ArticlesApp.Controllers
         }
 
         [HttpPost]
-        public ActionResult New(Category category)
+        public IActionResult New(Category category)
         {
             if (TempData.ContainsKey("message"))
             {
@@ -113,7 +106,7 @@ namespace ArticlesApp.Controllers
             }
         }
 
-        public ActionResult Edit(int id)
+        public IActionResult Edit(int id)
         {
             Category category = db.Categories.Find(id);
 
@@ -121,7 +114,7 @@ namespace ArticlesApp.Controllers
         }
 
         [HttpPost]
-        public ActionResult Edit(int id, Category requestCategory)
+        public IActionResult Edit(int id, Category requestCategory)
         {
             Category category = db.Categories.Find(id);
 
@@ -144,7 +137,6 @@ namespace ArticlesApp.Controllers
             }
         }
 
-        [HttpPost]
         public IActionResult Delete(int id)
         {
             Category category = db.Categories.Find(id);
