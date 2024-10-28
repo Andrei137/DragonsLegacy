@@ -33,6 +33,7 @@
             @Html.ValidationMessage("Priority", null, new { @class = "text-danger" })
             <br /><br />
 
+            <input type="hidden" name="Multimedia" value="@Model.Multimedia" />
             <input type="hidden" name="Status" value="@Model.Status" />
             <input type="hidden" name="StartDate" value="@Model.StartDate" />
             <input type="hidden" name="EndDate" value="@Model.EndDate" />

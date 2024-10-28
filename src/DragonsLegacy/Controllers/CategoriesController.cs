@@ -137,6 +137,7 @@ namespace ArticlesApp.Controllers
             }
         }
 
+        [HttpPost]
         public IActionResult Delete(int id)
         {
             Category category = db.Categories.Find(id);

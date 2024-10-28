@@ -53,6 +53,7 @@ namespace ArticlesApp.Controllers
         {
             ApplicationUser user = db.Users.Find(id);
             user.AllRoles        = GetAllRoles(user);
+            ViewBag.IsAdmin      = _userManager.IsInRoleAsync(user, "Admin").Result;
             var roleNames        = await _userManager.GetRolesAsync(user);
 
             if (roleNames.Count > 0)
@@ -126,9 +127,9 @@ namespace ArticlesApp.Controllers
             }
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task Delete(string id)
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> Delete(string id)
         {
             var user = db.Users
                          .Include("Comments")
@@ -179,6 +180,8 @@ namespace ArticlesApp.Controllers
 
             TempData["message"]     = "The user was successfully deleted";
             TempData["messageType"] = "alert-success";
+
+            return RedirectToAction("Index");
         }
 
         [Authorize(Roles = "Admin")]

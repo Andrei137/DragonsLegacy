@@ -27,7 +27,11 @@
                 <div class="d-flex flex-row justify-content-around p-3">
                     <div> <a href="/Categories/Edit/@category.Id" class="btn btn-dark">Edit</a> </div>
 
-                    <div> <a href="/Categories/Delete/@category.Id" class="btn btn-danger">Delete</a> </div>
+                    <form method="post" action="/Categories/Delete/@category.Id">
+
+                        <button type="submit" class="btn btn-danger">Delete</button>
+
+                    </form>
 
                 </div>
             </div>

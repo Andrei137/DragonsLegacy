@@ -11,6 +11,10 @@
 <h2 class="text-center mt-5">Add Task</h2>
 <br />
 
+@{
+    TempData["ProjectId"] = Model.ProjectId;
+}
+
 <form enctype="multipart/form-data" asp-controller="Tasks" asp-action="New">
     <div class="card-body">
         @Html.ValidationSummary(false, "", new { @class = "text-danger" })
@@ -28,7 +32,7 @@
         <br /><br />
 
         @Html.Label("Priority", "Priority")
-        @Html.DropDownList("Priority", new SelectList(ViewBag.AllPriorities, "Value", "Text"), new { @class = "form-control" })
+        @Html.DropDownList("Priority", new SelectList(ViewBag.AllPriorities, "Value", "Text"), null, new { @class = "form-control" })
         @Html.ValidationMessage("Priority", null, new { @class = "text-danger" })
         <br /><br />
 

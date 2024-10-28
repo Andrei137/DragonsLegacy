@@ -28,6 +28,8 @@
                 @Html.ValidationMessage("Description", null, new { @class = "text-danger" })
                 <br /><br />
 
+                <input type="hidden" name="Multimedia" value="@Model.Multimedia" />
+
                 @Html.Label("Price", "Price")
                 <input type="number" class="form-control" name="Price" value="@Model.Price" />
                 @Html.ValidationMessage("Price", null, new { @class = "text-danger" })

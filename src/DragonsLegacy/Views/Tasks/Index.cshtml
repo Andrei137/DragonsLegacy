@@ -92,7 +92,11 @@ else
 
                     @if (ViewBag.IsAdmin)
                     {
-                        <div> <a href="/Tasks/Delete/@task.Id" class="btn btn-danger">Delete</a> </div>
+                        <form method="post" action="/Tasks/Delete/@task.Id">
+
+                            <button type="submit" class="btn btn-danger">Delete</button>
+
+                        </form>
                     }
 
                 </div>

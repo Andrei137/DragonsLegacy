@@ -432,6 +432,7 @@ namespace DragonsLegacy.Controllers
             }
         }
 
+        [HttpPost]
         public IActionResult Delete(int id)
         {
             Team team = db.Teams.Find(id);

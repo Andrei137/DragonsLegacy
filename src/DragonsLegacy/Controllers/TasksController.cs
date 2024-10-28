@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
+using Project = DragonsLegacy.Models.Project;
 using Task = DragonsLegacy.Models.Task;
 
 namespace DragonsLegacy.Controllers
@@ -280,6 +282,7 @@ namespace DragonsLegacy.Controllers
             int ProjectId         = (int)TempData["ProjectId"];
             Task task             = new Task();
             task.Deadline         = task.StartDate = DateTime.Now;
+            task.ProjectId        = ProjectId;
 
             if (ProjectId == null)
             {
@@ -319,7 +322,11 @@ namespace DragonsLegacy.Controllers
         {
             if (ModelState.IsValid) // Add the task to the database
             {
-                Project project = db.Projects.Find(task.ProjectId);
+                Project project = db.Projects
+                                    .Include("Organizer")
+                                    .Where(p => p.Id == task.ProjectId)
+                                    .First();
+
                 if (project.OrganizerId == _userManager.GetUserId(User))
                 {
                     if (Media.Length > 0)
@@ -369,11 +376,15 @@ namespace DragonsLegacy.Controllers
             }
             else // Invalid model state
             {
-                Project project            = db.Projects.Find(task.ProjectId);
+                Project project = db.Projects
+                                    .Include("Organizer")
+                                    .Where(p => p.Id == task.ProjectId)
+                                    .First();
                 ViewBag.ProjectId          = task.ProjectId;
                 ViewBag.AllUsers           = GetAllUsersFromProject(project);
                 ViewBag.AllCategories      = GetAllCategories();
                 ViewBag.SelectedCategories = task.SelectedCategories;
+                ViewBag.AllPriorities      = GetAllPriorities(null);
                 ViewBag.Message            = "The task couldn't be added";
                 ViewBag.Alert              = "alert-danger";
 
@@ -573,10 +584,10 @@ namespace DragonsLegacy.Controllers
         private IEnumerable<SelectListItem> GetAllUsersFromProject(Project project)
         {
             // Select all users from all teams working on the project
-            var users = from userTeam in db.UserTeams
+            var users = (from userTeam in db.UserTeams
                         join teamProject in db.TeamProjects on userTeam.TeamId equals teamProject.TeamId
                         where teamProject.ProjectId == project.Id
-                        select userTeam.User;
+                        select userTeam.User).Distinct();
 
             var selectList = new List<SelectListItem>();
 
@@ -593,7 +604,7 @@ namespace DragonsLegacy.Controllers
                 {
                     selectList.Add(new SelectListItem
                     {
-                        Value    = user.Id.ToString(),
+                        Value    = user.Id,
                         Text     = user.UserName
                     });
                 }

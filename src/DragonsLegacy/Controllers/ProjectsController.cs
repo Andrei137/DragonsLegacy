@@ -158,7 +158,7 @@ namespace DragonsLegacy.Controllers
                         select team;
 
             // The project's tasks
-            var tasks = from task in db.Tasks
+            var tasks = from task in db.Tasks.Include("User").Include("Project")
                         where task.ProjectId == id
                         select task;
             
@@ -434,6 +434,7 @@ namespace DragonsLegacy.Controllers
             }
         }
 
+        [HttpPost]
         public IActionResult Delete(int id)
         {
             Project project = db.Projects

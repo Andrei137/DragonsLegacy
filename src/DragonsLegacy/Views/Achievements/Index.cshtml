@@ -51,7 +51,11 @@
 
                     @if (ViewBag.IsAdmin)
                     {
-                        <div> <a href="/Achievements/Delete/@achievement.Id" class="btn btn-danger">Delete</a> </div>
+                        <form method="post" action="/Achievements/Delete/@achievement.Id">
+
+                            <button type="submit" class="btn btn-danger">Delete</button>
+
+                        </form>
                     }
 
                 </div>
