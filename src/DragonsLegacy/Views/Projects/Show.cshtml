@@ -16,16 +16,18 @@
 <br /><b3 />
 @if (ViewBag.ShowButtons || ViewBag.IsAdmin)
 {
-    <div class="d-flex flex-row justify-content-around">
+    <div class="row">
+        <div class="col-md-4 d-flex justify-content-center">
+            <a class="btn btn-success" href="/Projects/Edit/@Model.Id">Edit</a>
+        </div>
 
-        <a class="btn btn-success" href="/Projects/Edit/@Model.Id">Edit</a>
+        <div class="col-md-4 d-flex justify-content-center"></div>
 
-        <form method="post" action="/Projects/Delete/@Model.Id">
-
-            <button type="submit" class="btn btn-danger">Delete</button>
-
-        </form>
-
+        <div class="col-md-4 d-flex justify-content-center">
+            <form method="post" action="/Projects/Delete/@Model.Id">
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        </div>
     </div>
     <br />
 }

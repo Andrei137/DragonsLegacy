@@ -17,13 +17,13 @@
 
         <form action="/Items/Index/@Model.Id">
 
-            <button type="submit" class="btn btn-primary">Buy</button>
+            <button type="submit" class="btn btn-dark">Buy</button>
 
         </form>
 
         @if (ViewBag.IsAdmin)
         {
-                <a class="btn btn-primary" href="/Items/Edit/@Model.Id">Edit</a>
+                <a class="btn btn-success" href="/Items/Edit/@Model.Id">Edit</a>
 
                 <form method="post" action="/Items/Delete/@Model.Id">
 
